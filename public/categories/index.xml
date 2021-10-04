@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Categories on InvestCookies</title>
+    <link>investcookies.netlify.app/categories/</link>
+    <description>Recent content in Categories on InvestCookies</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru-Ru</language>
+    <lastBuildDate>Fri, 01 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="investcookies.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>экономика</title>
+      <link>investcookies.netlify.app/categories/%D1%8D%D0%BA%D0%BE%D0%BD%D0%BE%D0%BC%D0%B8%D0%BA%D0%B0/</link>
+      <pubDate>Fri, 01 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>investcookies.netlify.app/categories/%D1%8D%D0%BA%D0%BE%D0%BD%D0%BE%D0%BC%D0%B8%D0%BA%D0%B0/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,41 @@
+theme: "hugo-PaperMod"
+baseURL: investcookies.netlify.app
+languageCode: ru-Ru
+title: InvestCookies 
+
+params:
+    homeInfoParams:
+        Title: 🍪 🍪 🪙
+        Content: Это блог про инвестиции, финансы, экономику, datascienсe, визуализацию, - вне политики и без скрытых бенифициаров
+    ShowShareButtons: true
+    socialIcons: # optional
+        - name: "email"
+        - name: "github"
+          url: "https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#enable-social-metadata-and-seo"
+        - name: "telegram"
+    ShowReadingTime: true
+    ShowBreadCrumbs: true
+    comments: true
+outputs:
+    home:
+        - HTML
+        - RSS
+        - JSON # is necessary
+
+menu:
+    main:
+        - identifier: categories
+          name: categories
+          url: /categories/
+          weight: 10
+        - identifier: tags
+          name: tags
+          url: /tags/
+          weight: 20
+        - identifier: search
+          name: search
+          url: /search/
+          weight: 30
+          
+disqusShortname: dmitrykibalnikov
+          
