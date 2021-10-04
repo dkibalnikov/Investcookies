@@ -10,12 +10,21 @@ params:
     ShowShareButtons: true
     socialIcons: # optional
         - name: "email"
+          url: "mailto:d.kibalnikov@gmail.com"
         - name: "github"
-          url: "https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#enable-social-metadata-and-seo"
+          url: "https://github.com/dkibalnikov"
         - name: "telegram"
+          url: "https://t.me/Kb_Dm"
+        - name: "rss"
+          url: "index.xml"
+        - name: "linkedin"
+          url: "https://www.linkedin.com/in/dmitry-kibalnikov-7134aa2a/"
+        - name: "facebook"
+          url: "facebook.com"
     ShowReadingTime: true
     ShowBreadCrumbs: true
     comments: true
+    
 outputs:
     home:
         - HTML
