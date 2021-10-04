@@ -85,6 +85,12 @@ table {
     word-break: keep-all;
 }
 
+th {
+  background-color: #1D1E20;
+  color: white;
+}
+tr:hover {background-color: #f2f2f2;} 
+
 button,
 input,
 textarea {
