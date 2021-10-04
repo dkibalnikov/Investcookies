@@ -39,3 +39,7 @@ menu:
           
 disqusShortname: dmitrykibalnikov
           
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
