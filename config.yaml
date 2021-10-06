@@ -6,8 +6,7 @@ title: InvestCookies
 params:
     homeInfoParams:
         Title: 🍪 🍪 🪙
-        Content: Это блог про инвестиции, финансы, экономику, datascienсe, визуализацию, - вне политики и без скрытых бенифициаров
-    ShowShareButtons: true
+        Content: Это блог про инвестиции, финансы, экономику, datascienсe, визуализацию - **вне политики и без сомнительных спонсоров** 😎 
     socialIcons: # optional
         - name: "email"
           url: "mailto:d.kibalnikov@gmail.com"
@@ -20,10 +19,11 @@ params:
         - name: "linkedin"
           url: "https://www.linkedin.com/in/dmitry-kibalnikov-7134aa2a/"
         - name: "facebook"
-          url: "facebook.com"
+          url: "https://www.facebook.com/Kibalnikov.Dmitry"
     ShowReadingTime: true
     ShowBreadCrumbs: true
     comments: true
+
     
 outputs:
     home:
@@ -52,3 +52,4 @@ markup:
   goldmark:
     renderer:
       unsafe: true
+    
