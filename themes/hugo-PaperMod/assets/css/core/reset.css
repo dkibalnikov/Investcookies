@@ -89,7 +89,10 @@ th {
   background-color: #1D1E20;
   color: white;
 }
-tr:hover {background-color: #f2f2f2;} 
+tr:hover {
+  background-color: #f2f2f2;
+  color: #1D1E20;
+} 
 
 button,
 input,
