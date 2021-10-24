@@ -6,7 +6,7 @@ title: InvestCookies
 params:
     homeInfoParams:
         Title: 🍪 🍪 🪙
-        Content: Блог про инвестиции, финансы, экономику, datascienсe, визуализацию - **вне политики и без сомнительных спонсоров** 😎 
+        Content: Блог про инвестиции, финансы, экономику, datascienсe, визуализацию - **вне политики и без сомнительных спонсоров** 😎 <br><br> Hi there 👋  this is blog about datascience, financial markets and economics
     socialIcons: # optional
         - name: "email"
           url: "mailto:d.kibalnikov@gmail.com"
@@ -38,20 +38,20 @@ outputs:
         - RSS
         - JSON # is necessary
 
-# menu:
-#     main:
-#         - identifier: categories
-#           name: categories
-#           url: /categories/
-#           weight: 10
-#         - identifier: tags
-#           name: tags
-#           url: /tags/
-#           weight: 20
-#         - identifier: search
-#           name: search
-#           url: /search/
-#           weight: 30
+menu:
+    main:
+        - identifier: categories
+          name: categories
+          url: /categories/
+          weight: 10
+        - identifier: tags
+          name: tags
+          url: /tags/
+          weight: 20
+        - identifier: search
+          name: search
+          url: /search/
+          weight: 30
           
 disqusShortname: dmitrykibalnikov
           
@@ -60,37 +60,37 @@ markup:
     renderer:
       unsafe: true
 
-languages:
-    ru:
-        languageName: ":ru:"
-        weight: 10
-        title: InvestCookies
-        menu:
-            main:
-                - name: Поиск
-                  url: search/
-                  weight: 10
-                - name: Теги
-                  url: tags/
-                  weight: 10
-                - name: Категории
-                  url: categories/
-                  weight: 10
-    en:
-        languageName: "En"
-        params:
-          homeInfoParams:
-            Title: 🍪 🍪 🪙
-            Content: Hi there 👋  this is blog about datascience, financial markets and economics
-        weight: 1
-        menu:
-            main:
-                - name: Search
-                  url: search/
-                  weight: 10
-                - name: Tags
-                  url: tags/
-                  weight: 10
-                - name: Categories
-                  url: categories/
-                  weight: 10
+# languages:
+#     ru:
+#         languageName: ":ru:"
+#         weight: 10
+#         title: InvestCookies
+#         menu:
+#             main:
+#                 - name: Поиск
+#                   url: search/
+#                   weight: 10
+#                 - name: Теги
+#                   url: tags/
+#                   weight: 10
+#                 - name: Категории
+#                   url: categories/
+#                   weight: 10
+#     en:
+#         languageName: "En"
+#         params:
+#           homeInfoParams:
+#             Title: 🍪 🍪 🪙
+#             Content: Hi there 👋  this is blog about datascience, financial markets and economics
+#         weight: 1
+#         menu:
+#             main:
+#                 - name: Search
+#                   url: search/
+#                   weight: 10
+#                 - name: Tags
+#                   url: tags/
+#                   weight: 10
+#                 - name: Categories
+#                   url: categories/
+#                   weight: 10
