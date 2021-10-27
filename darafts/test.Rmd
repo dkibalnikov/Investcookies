@@ -1,0 +1,56 @@
+---
+title: "Crosstalk test"
+author: "🍪🍪🪙"
+date: 2021-10-23
+categories: ["экономика"]
+tags: ["кризис", "для всех", "COVID"]
+math: true
+ShowToc: true
+cover:
+    image: "virus_fear.png"
+    # can also paste direct link from external site
+    # ex. https://i.ibb.co/K0HVPBd/paper-mod-profilemode.png
+    alt: "<alt text>"
+    caption: "<text>"
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+
+
+```{r}
+library(ggplot2)
+library(thematic)
+library(crosstalk)
+library(plotly)
+
+thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", font = font_spec("Roboto"), sequential = firatheme::firaPalette(100), qualitative = firatheme::firaPalette(50))
+
+
+get_plot <- function(df){
+  p <- ggplot(df, aes(wt, mpg)) + 
+    geom_point() + 
+    annotate(y = 20, x = 20, geom = "text", label = "InvestCookies")
+
+ggplotly(p)
+}
+
+bslib::bs_theme_dependencies(bslib::bs_theme(version = 3))
+
+shared_mtcars <- SharedData$new(mtcars)
+
+bscols(widths = c(3,NA),
+  list(
+    filter_checkbox("cyl", "Cylinders", shared_mtcars, ~cyl, inline = TRUE),
+    filter_slider("hp", "Horsepower", shared_mtcars, ~hp, width = "100%"),
+    filter_select("auto", "Automatic", shared_mtcars, ~ifelse(am == 0, "Yes", "No"))
+  ),
+  get_plot(shared_mtcars)
+  # plot_ly(shared_mtcars, x = ~wt, y = ~mpg) %>%  layout(paper_bgcolor  = "#1D1E20", plot_bgcolor  = "#1D1E20", annotations = list(text = "InvestCookies.ru", yanchor  = "auto", opacity = .5, font = list(size = 50)))
+  
+)
+```
+
+script 
+<script async src="https://comments.app/js/widget.js?3" data-comments-app-website="WqvUgpX2" data-limit="5" data-color="343638"></script>
+
+
+

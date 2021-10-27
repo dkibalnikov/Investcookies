@@ -1,7 +1,7 @@
 theme: "hugo-PaperMod"
 baseURL: /
 languageCode: ru-Ru
-title: InvestCookies 
+title: InvestCookies
 
 params:
     homeInfoParams:
@@ -22,6 +22,7 @@ params:
           url: "https://www.facebook.com/Kibalnikov.Dmitry"
     ShowReadingTime: true
     ShowBreadCrumbs: true
+    ShowPostNavLinks: true
     comments: true
     fuseOpts:
         isCaseSensitive: false
