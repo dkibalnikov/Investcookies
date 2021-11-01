@@ -32,6 +32,7 @@ params:
         threshold: 0.4
         minMatchCharLength: 0
         keys: ["title", "permalink", "summary", "content"]
+    env: production # to enable google analytics, opengraph, twitter-cards and schema.
 
 outputs:
     home:
@@ -61,7 +62,7 @@ markup:
     renderer:
       unsafe: true
 
-googleAnalytics: GTM-M9CX9TZ
+googleAnalytics: G-STNC3D15LX
 
 # languages:
 #     ru:
