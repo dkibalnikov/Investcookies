@@ -18,20 +18,11 @@
 }
 
 #bigBox {
-  display: block;
-  margin: 20px;
+  display: flex;
 }
 #leftBox {
-  width: 250px;
-  float: right;
-  margin: 5;
-  padding: 5px;
-  border-radius: 4%;
+  flex: 1;
 }
 #rightBox {
-  width: 380px;
-  float: left;
-  margin: 5;
-  padding: 20px;
-  border-radius: 4%;
+  flex: 1;
 }
