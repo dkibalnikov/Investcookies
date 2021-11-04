@@ -51,8 +51,12 @@ menu:
           url: /tags/
           weight: 20
         - identifier: search
-          name: search
+          name: search 
           url: /search/
+          weight: 30
+        - identifier: about
+          name: about
+          url: /about/
           weight: 30
           
 disqusShortname: dmitrykibalnikov

@@ -1,0 +1,37 @@
+.circular--square {
+  border-radius: 50%;
+}
+
+.circular--landscape {
+  display: inline-block;
+  position: relative;
+  width: 250px;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.circular--landscape img {
+  width: auto;
+  height: 100%;
+  margin-left: -100px;
+}
+
+#bigBox {
+  display: block;
+  margin: 20px;
+}
+#leftBox {
+  width: 250px;
+  float: right;
+  margin: 5;
+  padding: 5px;
+  border-radius: 4%;
+}
+#rightBox {
+  width: 380px;
+  float: left;
+  margin: 5;
+  padding: 20px;
+  border-radius: 4%;
+}
