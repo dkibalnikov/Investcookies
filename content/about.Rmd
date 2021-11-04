@@ -56,3 +56,6 @@ layout: "about"
     </div>
 </div>
 
+<hr>
+
+📞 <b style="color:white; background:#1D1E20; border-radius:3px;padding: 4px; border:1px solid grey" >Контакты</b>
