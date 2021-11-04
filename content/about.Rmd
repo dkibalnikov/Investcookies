@@ -39,11 +39,11 @@ layout: "about"
 ✍️ <b style="color:white; background:#1D1E20; border-radius:3px;padding: 4px; border:1px solid grey" >Кто автор?</b>
 
 
-<div id="bigBox">
-    <div id="leftBox">
+<div class="box">
+    <div>
     <img src="/./about_files/my_photo.jpg" class="circular--landscape"/>
     </div>
-    <div id="rightBox">
+    <div>
     <b>Кибальников Дмитрий</b> 
     <hr>
     Эксперт в области информационных технологий, финансового анализа и машинного обучения:

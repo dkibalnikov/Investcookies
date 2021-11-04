@@ -17,12 +17,11 @@
   margin-left: -100px;
 }
 
-#bigBox {
+.box {
   display: flex;
+  flex-wrap: wrap;
 }
-#leftBox {
-  flex: 1;
-}
-#rightBox {
-  flex: 1;
+
+.box>* {
+    flex: 1 1 200px;
 }
