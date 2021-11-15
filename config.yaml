@@ -13,7 +13,7 @@ params:
         - name: "github"
           url: "https://github.com/dkibalnikov"
         - name: "telegram"
-          url: "https://t.me/Kb_Dm"
+          url: "https://t.me/investcookies"
         - name: "rss"
           url: "index.xml"
         - name: "linkedin"
@@ -33,6 +33,7 @@ params:
         minMatchCharLength: 0
         keys: ["title", "permalink", "summary", "content"]
     env: production # to enable google analytics, opengraph, twitter-cards and schema.
+    ShowShareButtons: true
 
 outputs:
     home:
