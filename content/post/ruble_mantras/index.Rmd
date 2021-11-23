@@ -3,8 +3,8 @@ title: "Мантры о рубле 📈🕉📉"
 author: "🍪🍪🪙"
 date: 2021-11-20
 categories: ["экономика"]
-tags: ["рубль", "для всех", "анализ"]
-math: true
+tags: ["рубль", "для всех", "анализ", "инфляция", "кризис"]
+math: false
 ShowToc: true
 cover:
     image: "ruble.jpeg"
@@ -17,7 +17,7 @@ knitr::opts_chunk$set(collapse = TRUE, echo = FALSE, message = FALSE, warning = 
 
 # library(ggplot2)
 library(thematic)
-#library(plotly)
+library(plotly)
 library(echarts4r)
 library(tidyverse)
 library(xts)
@@ -160,7 +160,7 @@ p1/p2 + plot_layout(guides = "collect", design = "
 - сильная отрицательная корреляция: менее -0.6 
 - отрицательная корреляция: более -0.6, но менее -0.2.
 
-```{r}
+```{r, fig.width=6}
 p <- tibble(cor = cor, date = index(tickers)) %>% 
   mutate(Группы = cut(cor, breaks = 5, labels = c("Высокая отрицательная", "Отрицательная", "Слабая", "Положительная", "Высокая положительная")),
                Год = str_sub(date, 1L, 4L)) %>% 
@@ -171,12 +171,11 @@ p <- tibble(cor = cor, date = index(tickers)) %>%
   mutate(prop = n/sum(n)) %>% 
   ggplot(aes(Год, n, fill = Группы)) + 
   geom_col(alpha = .6) + 
-  labs(title = "Группы корреляций котировок нефти и курса рубля", fill = "", y = "Количество наблюдений") +
-  theme(text = element_text(color = "gray60"))
+  labs(title = "Группы корреляций котировок нефти и курса рубля", fill = "", y = "Количество наблюдений", x = "") +
+  theme(text = element_text(color = "gray60"), legend.position = "bottom")
 
-library(plotly)
 ggplotly(p) %>% 
-  layout(legend = list(font = list(family = "verdana")), font = list(family = "verdana"), title = list(font = list(family = "verdana")), 
+  layout(legend = list(font = list(family = "verdana"), orientation = 'h'), font = list(family = "verdana"), title = list(font = list(family = "verdana")), 
          yaxis = list(title = list(font = list(family = "verdana"))), xaxis = list(title = list(font = list(family = "verdana"))),
          annotations = list(text = "InvestCookies.ru", yanchor  = "auto", opacity = .2, font = list(size = 50))) %>% 
   config(displayModeBar = F)
