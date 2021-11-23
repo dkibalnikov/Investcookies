@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>R on InvestCookies</title>
+    <link>/tags/r/</link>
+    <description>Recent content in R on InvestCookies</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru-Ru</language>
+    <lastBuildDate>Mon, 01 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="/tags/r/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Используем здравый смысл в прогнозировании 🧠</title>
+      <link>/post/parametric_forecast/</link>
+      <pubDate>Mon, 01 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/parametric_forecast/</guid>
+      <description>Предыстория Люди любят прогнозировать и занимаются этим каждый день, иногда даже не осознавая того чем занимаются. Каждый день мы планируем поездку на работу 🚗 и нам приходится оценивать время, которое нам потребуется для того чтобы прибыть вовремя. Кто-то делает поправки на погодную обстановку или сезонные особенности: все обращали внимание, что летом на дорогах посвободнее, а в канун нового года твориться беспробудная жесть.</description>
+    </item>
+    
+    <item>
+      <title>R data.table and Apple M1</title>
+      <link>/post/datatable_m1/data_table_arm/</link>
+      <pubDate>Mon, 31 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/datatable_m1/data_table_arm/</guid>
+      <description>R data.table and Apple M1 installation on Big Sur supporting openmp multithreading
+Introduction Official release of R4.1.0 has bring long awaiting native support of Apple M1 to R/Mac users. Of course Rosetta engine provided by Apple do its job very well. Nevertheless we always eager for more performance and less time doing our data wrangling job. Unfortunately there are still lack of information regarding working in new environment. Basic installation of data.</description>
+    </item>
+    
+  </channel>
+</rss>

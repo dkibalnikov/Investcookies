@@ -1,0 +1,29 @@
+---
+title: "Рубль?🛢📈🍔"
+author: "🍪🍪🪙"
+date: 2021-10-01
+categories: ["экономика"]
+tags: ["инфляция", "для всех"]
+math: true
+ShowToc: true
+diagram: true
+cover:
+    image: "black_burger.jpeg"
+    # can also paste direct link from external site
+    # ex. https://i.ibb.co/K0HVPBd/paper-mod-profilemode.png
+    alt: "<alt text>"
+    caption: "<text>"
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+
+привет
+
+{{< diagram >}}
+graph LR;
+    A[Hard edge] -->|Link text| B(Round edge)
+    B --> C{Decision}
+    C -->|One| D[Result one]
+    C -->|Two| E[Result two]
+{{< /diagram >}}
+
+wewf

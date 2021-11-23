@@ -5,7 +5,17 @@
     <link>/</link>
     <description>Recent content on InvestCookies</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 23 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <language>ru-Ru</language>
+    <lastBuildDate>Mon, 01 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Используем здравый смысл в прогнозировании 🧠</title>
+      <link>/post/parametric_forecast/</link>
+      <pubDate>Mon, 01 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/parametric_forecast/</guid>
+      <description>Предыстория Люди любят прогнозировать и занимаются этим каждый день, иногда даже не осознавая того чем занимаются. Каждый день мы планируем поездку на работу 🚗 и нам приходится оценивать время, которое нам потребуется для того чтобы прибыть вовремя. Кто-то делает поправки на погодную обстановку или сезонные особенности: все обращали внимание, что летом на дорогах посвободнее, а в канун нового года твориться беспробудная жесть.</description>
+    </item>
+    
     <item>
       <title>Кому не страшен COVID😱🦠</title>
       <link>/post/money_flows/</link>
@@ -16,13 +26,35 @@
     </item>
     
     <item>
+      <title>А сколько в гамбургере нефти?🛢📈🍔</title>
+      <link>/post/burger_cost/</link>
+      <pubDate>Fri, 01 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/burger_cost/</guid>
+      <description>Про инфляцию Казалось бы чрезвычайно глупый вопрос, но, если призадуматься, то в разных формах его задает себе едва ли не каждый, особенно когда дело касается роста цен. Действительно, при росте нефти/бензина на 1%, 10%, 100% - насколько сильно может вырасти стоимость гамбургера? Особенно интересно становится тогда, когда инфляция проникает в карман каждого и начинает пожирать скромные или не очень скромные сбережения населения.</description>
+    </item>
+    
+    <item>
       <title>R data.table and Apple M1</title>
       <link>/post/datatable_m1/data_table_arm/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/datatable_m1/data_table_arm/</guid>
       <description>R data.table and Apple M1 installation on Big Sur supporting openmp multithreading
 Introduction Official release of R4.1.0 has bring long awaiting native support of Apple M1 to R/Mac users. Of course Rosetta engine provided by Apple do its job very well. Nevertheless we always eager for more performance and less time doing our data wrangling job. Unfortunately there are still lack of information regarding working in new environment. Basic installation of data.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/about/</guid>
+      <description>👀 Что это?
+Этот блог охватывает области интересов автора:
+ Экономика Финансовые рынки Корпоративное управление Data science Визуализация Программирование   🎯 Зачем этот блог?
+Публикуемые заметки - это демонстрация концепции Storytelling с использованием информации, интересной широкому кругу читателей. Storytelling - это идея объединение бизнес-консалтинга и анализа данных с целью получения наибольшей выгоды при цифровых преобразованиях в организациях.
+Демонстрируемые подходы к интерактивной визуализации, математическому моделированию, аналитическим исследованиям - все это может и должно стать высокоэффективным инструментом цифрового развития компаний.</description>
     </item>
     
     

@@ -1,8 +1,10 @@
 ---
 title: "R data.table and Apple M1"
-author: "Kibalnikov"
-date: "5/31/2021"
-output: html_document
+author: "🍪🍪🪙"
+date: 2021-05-31
+categories: ["data science"]
+tags: ["R", "advanced"]
+ShowToc: true
 ---
 
 ```{r include=FALSE}

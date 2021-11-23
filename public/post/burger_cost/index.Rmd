@@ -30,10 +30,9 @@ library(DT)
 
 thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", font = font_spec("Roboto"), sequential = firatheme::firaPalette(100), qualitative = firatheme::firaPalette(50))
 sysfonts::font_add_google("Roboto")
-# равт  
+
 e_common(font_family = "Verdana", theme = "infographic")
 ```
-
 
 ## Про инфляцию
 
