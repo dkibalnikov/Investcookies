@@ -159,7 +159,7 @@ e_charts(sim_bshop, day_num) %>%
   e_y_axis(name = "Выручка, тыс. руб.") %>% 
   e_x_axis(name = "День") %>% 
   e_legend(type = "scroll", selector = TRUE,  padding = 30) %>% 
-  e_draft("InvestCookies.ru", size = "80px", opacity = 0.7)
+  e_draft("InvestCookies.ru", size = "80px", opacity = 0.4)
 ```
 
 Получились два графика с некоторым случайными блужданиями и с
@@ -471,7 +471,7 @@ sim_bshop %>%
   e_y_axis(name = "Выручка, тыс. руб.") %>% 
   e_x_axis(name = "День") %>% 
   e_legend(type = "scroll", padding = 30) %>% 
-  e_draft("InvestCookies.ru", size = "80px", opacity = 0.6)
+  e_draft("InvestCookies.ru", size = "80px", opacity = 0.4)
 
 ```
 
