@@ -1,0 +1,517 @@
+---
+title: "Мантры о рубле 📈🕉📉"
+author: "🍪🍪🪙"
+date: 2021-11-20
+categories: ["экономика"]
+tags: ["рубль", "для всех", "анализ", "инфляция", "кризис"]
+math: false
+ShowToc: true
+cover:
+    image: "ruble.jpeg"
+    alt: "<Что происходит с рулем>"
+    caption: "<text>"
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE, fig.width=7.5)
+
+# library(ggplot2)
+library(thematic)
+library(plotly)
+library(echarts4r)
+library(tidyverse)
+library(xts)
+library(quantmod)
+# library(data.table)
+# library(collapse)
+library(DT)
+# library(janitor)
+library(readxl)
+# library(lubridate)
+library(ggpp)
+library(ggtext)
+library(memoise)
+library(ggrepel)
+library(patchwork)
+library(tidyxl)
+library(unpivotr)
+
+thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", font = font_spec("Roboto"), sequential = firatheme::firaPalette(100), qualitative = palette.colors(palette = "Tableau"))
+# sysfonts::font_add_google("Roboto")
+my_pal <- palette.colors(palette = "Tableau") %>% unname()
+colorize <- function(color, text) {
+    sprintf("<a style='color:white; background:%s; border-radius:3px;padding: 2px' >%s</a>", color, text)
+}
+
+e_common(font_family = "Verdana", theme = "infographic")
+```
+
+## Доллар по 200
+
+Внезапный быстрый отход воды от берега на значительное расстояние и осушка дна для жителей Японии ⛩ означает, что следует поскорее убраться с пляжа так как надвигается цунами. 🌊🌊🌊 Большинству жителей России цунами не грозит, а вот укрепление курса национальной валюты в каждый раз поднимает вопрос: "а не прикупить ли евро или бакса в заначку???". И действительно, может прикупить? 🤔 Может надвигается ужасное цунами, которое отправит всю финансовую систему развивающейся экономики к праотцам вместе с деревянным рублем? Как понять, что произойдет завтра?  
+
+По телевизору не перестают внушать о скором закате доллара 💸 в то время как некоторые независимые эксперты обещают доллар по 200. И те и другие особо не утруждают себя аргументацией, а используют что-то вроде мантр, которыми сами себя пытаются убедить в своей же правоте. Вот такие мантры как минимум заслуживают разбора. Итак поехали 🚗🚗🚗
+
+## Нефть
+
+🕉 Мантра: *Курс рубля такой потому что нефть такая.. дорогая или наоборот*
+
+Данный тезис с первого взгляда выглядит достаточно логично, но в последнее время официальные власти заявляют, что такая зависимость -- не является существенной. Если такая зависимость не отрицается как факт, то во всяком случае делаются заявления о том, что правительством проделана большая работа, результатом которой будет стабильный курс рубля. Приведу цитату:
+
+> *Зависимость российской экономики от нефтегазовых доходов сокращается, но постепенно.*
+> --- Дмитрий Песков
+
+Готов поверить на слово государственному человеку, но почему бы не проверить эти слова и не выразить их в каких-нибудь понятных цифрах на примере рубля? Рубль -- это тоже часть экономики. Возможно, тогда утверждение Дмитрия Сергеевича, всегда аккуратного в выражениях, станет более убедительным, либо наоборот. В любом случае, понимание уровня расхождения слов чиновников с действительностью -- это неплохой ориентир для принятия инвестиционных решений. 
+
+В первую очередь -- фундаментальный анализ. Если основной экспортный товар РФ -- нефть, то логично, что падение или рост цен на этот товар прямым образом влияет на покупательную способность национальной валюты. Осталось только понять какую часть нефть занимает в торговом балансе. Строго говоря, торговый баланс состоит из импорта и экспорта, но исторически сложилось так, что нефть в торговом балансе РФ фактически присутствует только лишь в одной из частей. Попробуйте угадать в какой? 😅
+
+```{r}
+imex <- read_delim("data/сustom.csv", locale = locale(encoding = "UTF-16", decimal_mark = ","), delim = "\t", ) %>% 
+  mutate(oil_grp = case_when(str_detect(`ТНВЭД(4 знака)`, "НЕФТЬ СЫРАЯ") ~ "НЕФТЬ СЫРАЯ", 
+                             str_detect(`ТНВЭД(4 знака)`, "НЕФТЕПРОДУКТЫ") ~ "НЕФТЬ И НЕФТЕПРОДУКТЫ",
+                             TRUE ~ "ПРОЧЕЕ")) 
+
+ex <- filter(imex, `Направление перемещения` == "Экспорт") %>% 
+  group_by(Год, `Направление перемещения`, oil_grp) %>% 
+  summarise(trade = sum(`Стоимость, долл. США`)*1e-9) %>% 
+  mutate(part = trade/sum(trade)) %>% 
+  ungroup() 
+
+im <- filter(imex, `Направление перемещения` == "Импорт") %>% 
+  group_by(Год, `Направление перемещения`, oil_grp) %>% 
+  summarise(trade = sum(`Стоимость, долл. США`)*1e-9) %>% 
+  mutate(part = trade/sum(trade)) %>% 
+  ungroup() 
+
+ggplot(ex, aes(Год, trade, fill = oil_grp)) +
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 20) +
+  geom_col(alpha = .5) + 
+  geom_col(data = im, aes(Год, -trade, fill = oil_grp), alpha = .5) + 
+  geom_label(aes(label = scales::percent(part)), position = position_stack(vjust = .5)) + 
+  geom_label_repel(data = im, aes(Год, -trade, label = scales::percent(part, accuracy = .01)), position = position_stack(vjust = .5)) + 
+  geom_hline(aes(yintercept = 0)) +
+  scale_y_continuous(labels = scales::label_dollar(prefix = "b$")) +
+  labs(title = "Доля нефти в экспорте РФ", fill = "", y = "<- Импорт | Экспорт ->\nмлрд. $", caption = "Источник: ФТС РФ") +
+  theme(legend.position = "top", text = element_text(color = "gray60"))
+```
+
+К сожалению, ФТС публикует свои данные в потребном формате лишь с 2018 года и на интервале 2018-2021 действительно можно видеть некоторое снижение доли `r colorize(my_pal[2], "cырой нефти")` и `r colorize(my_pal[1], "нефти более высоких переделов")`. Совокупно доля с **46%** в 2018 году снизилась до **34-36%** в 2020-2021 году и если 2020 год был по всем характеристикам не очень обычным, то 2021 год - является показательным даже с учетом того, что он еще не закончился и следовательно сравнивать 2021 год с предыдущими по абсолютному значению будет не очень корректно. 
+
+Следующее, что можно заметить -- это то, что объем импорта приблизительно соответствует объему экспорта без учета `r colorize(my_pal[2], "cырой нефти")` и даже `r colorize(my_pal[1], "нефтепродуктов")`. Иными словами, объем всех импортируемых товаров в РФ может быть легко покрыт экспортом без учета нефти. 🥳🥳🥳 Конечно, это в определенном смысле лукавство потому как в торговом балансе отсутствуют потоки капитала и сальдо по импорту-экспорту услуг, а обе эти составляющие хронически отрицательны, но об этом в другой раз. 
+
+Понятно, что ценообразование -- это далеко не всегда биржевые котировки марки Brent. Мазут, газойл, дизелное топливо, прочие дистилляты разного пошиба -- все это имеет свою структуру ценообразования, которая конечно зависит от нефти, но также имеет и свои уникальные ценовые триггеры. Также марка Brent -- это не марка Urals, которая на самом деле относится к российскому происхождению и между этими марками есть свой спред. Еще есть газ и уголь, которые к нефти не относятся, но зачастую торгуются в одном направлении с нефтью и также влияют на совокупный объем экспорта. В общем нюансов масса, которые учесть очень не просто.
+
+Теперь технический анализ -- котировки рубля и нефти: за самый глубокий исторический период, который я смог найти с подневной детализацией. 
+
+```{r, fig.height=7}
+
+# USDRUB <- getSymbols(Symbols = "USDRUB=X", src = "yahoo", from = as.Date("2001-01-01"), auto.assign = FALSE) 
+# brent <-  getSymbols(Symbols = "BZ=F", src = "yahoo", from = as.Date("2001-01-01"), auto.assign = FALSE)
+# tickers <- merge(USDRUB, brent)["2007-07-30/"] %>% na.locf() 
+# qs::qsave(tickers , "data/tickers.qs")
+
+tickers <- qs::qread("data/tickers.qs")
+cor <- rollapply(tickers, width = 30, \(x) cor(x[,4], x[,10]), by.column=FALSE) %>% as.xts()
+
+scale_cor <- 2
+
+tickers_tbl <- as_tibble(tickers) %>% 
+  mutate(date = index(tickers),
+         USDRUB.X.Close = if_else(USDRUB.X.Close < 1, USDRUB.X.Close*100, USDRUB.X.Close))
+
+p1 <- ggplot(tickers_tbl, aes(date)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 20) +
+  geom_line(aes(y = USDRUB.X.Close*scale_cor, col = "Курс рубля")) + 
+  geom_line(aes(y = BZ.F.Close, col = "Цена Brent")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./scale_cor, name = "Курс ₽"), n.breaks = 10) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(values = c("Курс рубля" = my_pal[2], "Цена Brent" = my_pal[1])) +
+  theme(axis.title.y.right = element_text(colour = my_pal[2]), axis.title.y.left = element_text(colour = my_pal[1]), text = element_text(color = "gray60"),
+       axis.text.y.left = element_text(colour = my_pal[1]), axis.text.y.right = element_text(colour = my_pal[2]) ) + 
+  labs(title = "Историческая зависимость курса рубля от стоимости нефти Brent", y = "Brent, $", fill = "", col = "", x = "") 
+
+p2 <- tibble(cor = cor, date = index(tickers)) %>% 
+  as_tibble() %>% 
+  ggplot(aes(date)) + 
+  geom_col(aes(y = cor, fill = "Корреляция"), alpha = .5) + 
+  geom_smooth(aes(y = cor, col = "Сглаженная корреляция"), size = .5) + 
+  geom_hline(aes(yintercept = 1), col = my_pal[3], lty = 5) + 
+  geom_hline(aes(yintercept = -1), col = my_pal[3], lty = 5) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_color_manual(values = c("Сглаженная корреляция" = my_pal[5])) +
+  scale_fill_manual(values = c("Корреляция" = my_pal[3])) +
+  theme(legend.position = "top", text = element_text(color = "gray60"), axis.text.x = element_blank(), axis.title.y.left = element_text(colour = my_pal[3]),
+        axis.text.y.left = element_text(colour = my_pal[3])) + 
+  labs(y = "Корреляция", fill = "", col = "", x = "", caption = "Источник: Yahoo Finance")
+
+p1/p2 + plot_layout(guides = "collect", design = "
+1#
+1#
+2#") & theme(legend.position = 'bottom')
+
+```
+
+Курс `r colorize(my_pal[2], "рубля")` и котировки `r colorize(my_pal[1], "нефти Brent")` -- это достаточно известные графики для людей, интересующихся финансовыми рынками, но я добавил немного специального соуса в виде `r colorize(my_pal[3], "скользящей корреляции")`. Трейдеры знают, что бывает такой зверь как скользящее среднее, что по сути является регрессией интервала временного ряда на определенное значение. В данном случае скользящая корреляция -- это тоже регрессия интервала временного ряда, но не на определенное значение, а на другой временной ряд. В качестве интервала по которому рассчитывалось скольжение использовался месяц или 30 дней т.е. каждая точка графика  `r colorize(my_pal[3], "скользящей корреляции")` показывает как были связаны котировки нефти с курсом рубля. Для наглядности также приведена еще одна кривая `r colorize(my_pal[5], "сглаженной скользящей корреляции")`, которая позволяет сделать выводы о тенденции на продолжительных временных интервалах. 
+
+Очевидно, что корреляция должна быть преимущественно отрицательной: падение цены нефти ведет к росту курса рубля к доллару и наоборот. С 2007 года по 2014 корреляция находится на уровне минус 0.5 т.е. изменения в цене нефти конвертировались в 50% изменений курса рубля. К 2014 году корреляция практически обнулилась, но потом резко усилилась до минус 0.75 и к настоящему времени стабилизировалась на исходных минус 0.5. Получается, что курс рубля зависит от нефти ровно также как он зависел всегда и толком ничего не поменялось. 
+
+Для того чтобы окончательно оформить мысль в цифрах было посчитано количество периодов когда связь котировок нефти и курса рубля была высокой, а когда низкой. Получилось еще одно количественное представление силы данной связи, которое показывает две доминирующие группы: 
+
+- сильная отрицательная корреляция: менее -0.6 
+- отрицательная корреляция: более -0.6, но менее -0.2.
+
+```{r, fig.width=6}
+p <- tibble(cor = cor, date = index(tickers)) %>% 
+  mutate(Группы = cut(cor, breaks = 5, labels = c("Высокая отрицательная", "Отрицательная", "Слабая", "Положительная", "Высокая положительная")),
+               Год = str_sub(date, 1L, 4L)) %>% 
+  drop_na() %>% 
+  group_by(Год, Группы) %>% 
+  summarise(n = n()) %>% 
+  group_by(Год) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(Год, n, fill = Группы)) + 
+  geom_col(alpha = .6) + 
+  labs(title = "Группы корреляций котировок нефти и курса рубля", fill = "", y = "Количество наблюдений", x = "") +
+  theme(text = element_text(color = "gray60"), legend.position = "bottom")
+
+ggplotly(p) %>% 
+  layout(legend = list(font = list(family = "verdana"), orientation = 'h'), font = list(family = "verdana"), title = list(font = list(family = "verdana")), 
+         yaxis = list(title = list(font = list(family = "verdana"))), xaxis = list(title = list(font = list(family = "verdana"))),
+         annotations = list(text = "InvestCookies.ru", yanchor  = "auto", opacity = .2, font = list(size = 50))) %>% 
+  config(displayModeBar = F)
+  
+```
+
+Таким образом, вынужден заключить: Дмитрий Сергеевич был не прав в части того, что зависимость экономики от нефти сокращается. При прочих равных зависимость рубля от нефти никуда не делась и мантру об этом следует признать годной, хотя она и не объясняет относительную слабость рубля последних лет при растущей нефти. И действительно, показатель 0.5 объясняет лишь половину изменений, но не все 100%. Чего-то еще не хватает. 👀
+
+## Бюджет
+
+🕉 Мантра: *Стоимость барреля нефти в рублях должна быть высокой чтобы сбалансировать бюджет*
+
+Хороший финансовый директор или министр финансов настраивает финансовые потоки таким образом чтобы обязательства были обеспечены финансовыми средствами точно в срок: не раньше и не позже. Если средства появились ранее запланированного, то таковые, вероятнее всего, просто пролежат мертвым грузом остатками на счетах, разъедаемые инфляцией. Наоборот, появление денежных средств позже чем было запланировано -- это прямой путь к кассовым разрывам и дефолту, возможно, техническому, но дефолту. Поэтому для министра финансов, в данном случае Силуанова, в теории важно чтобы курс рубля служил неким демпфером: при возникновении дефицита -- курс снижался, а при профиците -- наоборот повышался. В действительности, профицит бюджета выглядит в глазах чиновников чем-то более позитивным чем дефицит т.е. с их точки зрения изъять из экономики больше денег чем планировалось - это лучше чем недобрать. 
+
+Напомню, основной нефтегазовый доход попадает в федеральный бюджет, поэтому далее будет сопоставляться динамика курса рубля с динамикой исполнения именно федерального бюджета.
+
+```{r, fig.height=6}
+tickers_mnth <- tickers_tbl %>% 
+  mutate(brent2rub = BZ.F.Close*USDRUB.X.Close, 
+         date = str_sub(date, 1L, 7L) %>% str_c("-15") %>% as.Date("%Y-%m-%d")) %>% 
+  group_by(date) %>% 
+  summarise(brent2rub = mean(brent2rub), .groups = "drop") 
+  
+budget <- read_excel("data/fedbud_month.xlsx", sheet = "месяц", skip = 2)
+
+deficit <- pivot_longer(budget, -(1:2)) %>% 
+  mutate(date = as.Date(as.numeric(name), origin = "1900-01-01"), .before = 1) %>% 
+  mutate(date = str_sub(date, 1L, 8L) %>% str_c("15") %>% as.Date("%Y-%m-%d")) %>% 
+  select(date, type = 3, deficit = value) %>% 
+  filter(type == "Дефицит (-)/Профицит (+)") 
+
+oil_part <- pivot_longer(budget, -(1:2)) %>% 
+  mutate(date = as.Date(as.numeric(name), origin = "1900-01-01"), .before = 1) %>% 
+  mutate(date = str_sub(date, 1L, 8L) %>% str_c("15") %>% as.Date("%Y-%m-%d")) %>% 
+  select(date, type = 3, value) %>% 
+  filter(type %in% c("Доходы, всего", "Нефтегазовые доходы")) %>% 
+  pivot_wider(date, names_from = "type") %>% 
+  mutate(prt = `Нефтегазовые доходы`/`Доходы, всего`)
+
+jnd <- left_join(deficit, tickers_mnth, by = "date") %>% 
+  mutate(across(3:4, ~scale(.))) 
+
+budget_start <- mutate(jnd, month = str_sub(date, 6L, 7L)) %>% 
+  filter(month == "01") %>% 
+  mutate(end = deficit + 0.2, start = deficit + 1)
+
+mdl1 <- lm(data = jnd, deficit ~ 0 + brent2rub) %>% summary()
+r1 <- str_c("R^2 == ", round(mdl1$adj.r.squared, 3)) 
+mdl2 <- lm(data = mutate(jnd, deficit = lead(deficit, 2)), deficit ~ 0 + brent2rub) %>% summary()
+r2 <- str_c("R^2 == ", round(mdl2$adj.r.squared, 3)) 
+
+p1 <- ggplot(jnd, aes(date)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 13) +
+  geom_line(aes(y = brent2rub, col = "Цена Brent")) + 
+  geom_line(aes(y = deficit, col = "Сальдо бюджета")) +
+  geom_col(data = oil_part, aes(y = prt*2, fill = "Доля нефтигазовых доходов"), alpha = .5) +
+  # geom_segment(data = budget_start, aes(x = date, xend = date, y = start, yend = end, col = "Новый бюджет"), arrow = arrow(length = unit(0.1, "inches"))) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + 
+  scale_y_continuous(sec.axis = sec_axis(trans = ~./2, name = "Доля нефтигазовых доходов", labels = scales::label_percent())) + 
+  scale_color_manual(values = c("Цена Brent" = my_pal[1], "Сальдо бюджета" = my_pal[2])) +
+  scale_fill_manual(values = c("Доля нефтигазовых доходов" = my_pal[4])) +
+  labs(title = "Динамика Brent в рублях и сальдо бюджета", fill = "", col = "", x = "", 
+       y =  str_glue("<span style = 'color: {my_pal[1]};'>Brent, руб.</span> | <span style = 'color: {my_pal[2]};'> Сальдо бюджета </span>")) + 
+  theme(text = element_text(color = "gray60"), axis.title.y.left = element_markdown(),  axis.title.y.right = element_text(color = my_pal[4]))
+
+p2 <- mutate(jnd, deficit = lead(deficit, 2)) %>% 
+  ggplot(aes(date)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 13) +
+  geom_line(aes(y = brent2rub, col = "Цена Brent")) + 
+  geom_line(aes(y = deficit, col = "Сальдо бюджета")) +
+  geom_col(data = oil_part, aes(y = prt*2, fill = "Доля нефтигазовых доходов"), alpha = .5) +
+  # geom_segment(data = budget_start, aes(x = date, xend = date, y = start, yend = end, col = "Новый бюджет"), arrow = arrow(length = unit(0.1, "inches"))) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + 
+  scale_y_continuous(sec.axis = sec_axis(trans = ~./2, name = "Доля нефтигазовых доходов", labels = scales::label_percent())) + 
+  scale_color_manual(values = c("Цена Brent" = my_pal[1], "Сальдо бюджета" = my_pal[2])) +
+  scale_fill_manual(values = c("Доля нефтигазовых доходов" = my_pal[4])) +
+  labs(title = "Динамика Brent в рублях и сальдо бюджета", subtitle = "со сдвигом на 2 месяца" , fill = "", col = "", x = "", 
+       y =  str_glue("<span style = 'color: {my_pal[1]};'>Brent, руб.</span> | <span style = 'color: {my_pal[2]};'> Сальдо бюджета </span>")) + 
+  theme(text = element_text(color = "gray60"), axis.title.y.left = element_markdown(),  axis.title.y.right = element_text(color = my_pal[4]))
+
+p3 <- ggplot(jnd, aes(deficit, brent2rub)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 7) +
+  geom_point(col = my_pal[1], alpha = .5) + 
+  geom_smooth(method = "lm", col = my_pal[2]) + 
+  annotate("text_npc", npcx = .1, npcy = .9, label = r1, parse = TRUE, color = my_pal[2]) +
+ labs(y = "Сальдо бюджета", x = "Brent, руб.") + 
+  theme(text = element_text(color = "gray60"), axis.title.y = element_text(color = my_pal[2]), axis.title.x = element_text(color = my_pal[1])) 
+
+p4 <- mutate(jnd, deficit = lead(deficit, 2)) %>% 
+  ggplot(aes(deficit, brent2rub)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 7) +
+  geom_point(col = my_pal[1], alpha = .5) + 
+  geom_smooth(method = "lm", col = my_pal[2]) + 
+  annotate("text_npc", npcx = .1, npcy = .9, label = r2, parse = TRUE, color = my_pal[2]) +
+  labs(y = "Сальдо бюджета", x = "Brent, руб.") + 
+  theme(text = element_text(color = "gray60"), axis.title.y = element_text(color = my_pal[2]), axis.title.x = element_text(color = my_pal[1])) 
+
+p1 + p2 + p3 + p4 + plot_annotation(caption = "Источник: Минфин РФ", tag_levels = "A") + 
+plot_layout(guides='collect', design = "
+  113
+  224
+") &
+  theme(legend.position='none', text = element_text(color = "gray60")) 
+```
+
+Для наглядности сравнения графики были масштабированы и общая для них шкала **Y** стала безразмерной. При наложении "в лоб" двух графиков в глаза бросается следующее: 
+
+- Диаграмма `A`: Два графика действительно похожи `r colorize(my_pal[1], "друг")` на `r colorize(my_pal[2], "друга")`, а следовательно имеется зависимость, уровень которой оценен на диаграмме `C` 
+- Присутствует некоторое "отставание" `r colorize(my_pal[2], "сальдо федерального бюджета")` от графика `r colorize(my_pal[1], "цены Brent")` и для того чтобы эти два графика более точно "легли друг на друга" график `r colorize(my_pal[2], "сальдо бюджета")` был сдвинут на два месяца назад на диаграмме `B`. Зависимость исполнения бюджета от Brent в рублях выше с учетом сдвига на два месяца. `C и D`
+- На графике `r colorize(my_pal[2], "сальдо федерального бюджета")` наблюдаются резкие скачки, которые означают не что иное, как бюджетную погрешность **на конец года**. Особенно хорошо это видно на примере ковидного 2020 года, когда дефицит постепенно накапливался и как-бы обнулился в начале следующего года. Формально, министр финансов должен получать премию только тогда когда размер таких скачков относительно небольшой. Интересно, так ли это на самом деле? 👀
+- `r colorize(my_pal[4], "Доля нефтегазовых доходов")` в совокупных доходах федерального бюджета несколько уменьшилась с **~50%** в 2011 году до **~35%** в 2021 `A и B`
+
+Получается, что изменение цены Brent в рублях сказывается на бюджете спустя два месяца т.е. присутствует зависимость исполнения бюджета от изменения цены Brent, но не наоборот! ❌ Конечно минфин заинтересован в компенсации выпадающих бюджетных доходов за счет курса рубля, но судя по графикам, такого механизма **просто нет**. Действительно, забавно даже представить, как Силуанов звонит Набиулиной с просьбой подсобить с исполнением бюджета путем дополнительной рублевой эмиссии, которая бы автоматом повышала стоимость барреля в рублях. Глава ЦБ РФ железной рукой пытается победить инфляцию, а тут звонит тревожный пассажир 😱 и просит наоборот эту самую инфляцию подраскрутить. Зачем это Набиулиной? Абсолютно незачем, поэтому Силуанова отправляют подальше куда-нибудь в ФНБ или на рынок ОФЗ для осуществления займов. Вариант с ОФЗ вообще для ЦБ выгоден потому как он способен абсорбировать ликвидность с рынков капитала, что наоборот тормозит инфляцию.
+
+Добавлю большей строгости в свои рассуждения и проделаю относительно простой трюк с проверкой причинности одно графика по отношению к другому. По сути речь идет о том чтобы построить регрессию графика со сдвигом. Считается, что выявленная корреляционная зависимость одного временного ряда от другого, но сдвинутого по времени на несколько точек (лагов) говорит о причинной связи одного графика с другим. Такая регрессионная зависимость эконометристами величается как *Причинность по Грэнджеру*. Трюк относительно простой, но этого было достаточно чтобы Грэнджер получил Нобелевскую премию по экономике. Осталось только проверить причинность в одну и другую стороны:
+
+```{r}
+granger1 <- map_dfr(1:5, ~broom::tidy(lmtest::grangertest(data = jnd, deficit ~ brent2rub, order = .))[2, c(1, 3, 4)], .id = "lag")
+
+datatable(granger1, style = 'bootstrap4',  extensions = 'Responsive', options = list(pageLength = 10),
+          caption = "Тест Гранжера на причинность: сальдо бюджета зависит от цены Brent в рублях") %>% 
+  formatSignif(3:4, digits = 2) %>% 
+  formatStyle('p.value',
+              background = styleColorBar(granger1$p.value, '#2AD3D3'),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center')
+```
+В первом случае нулевая гипотеза *о том, что сальдо бюджета не зависит от Brent в рублях* - **отвергается**. Напомню, что чем ниже значение `p.value` тем убедительнее заключение. В данном случае самый убедительный вариант обнаружен для сдвига в один месяц `lag = 1`. 
+
+```{r}
+granger2 <- map_dfr(1:5, ~broom::tidy(lmtest::grangertest(data = jnd,  brent2rub ~ deficit, order = .))[2, c(1, 3, 4)], .id = "lag")
+
+datatable(granger2, style = 'bootstrap4',  extensions = 'Responsive', options = list(pageLength = 10),
+          caption = "Тест Гранжера на причинность: Цена Brent в рублях зависит от дифицита") %>% 
+  formatSignif(3:4, digits = 2) %>% 
+  formatStyle('p.value',
+              background = styleColorBar(granger2$p.value, '#2AD3D3'),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center')
+```
+Во втором случае нулевая гипотеза *о том, что Brent в рублях не зависит от сальдо бюджета* -- **не отвергается** для любого из рассмотренных сдвигов. Таким образом, получено более строгое подтверждение наличия зависимости исполнения бюджета от цены Brent в рублях, **но не наоборот**.
+
+## Пугливый иностранный инвестор
+
+🕉 Мантра: *Курс рубля вырастет/упадет, если иностранный инвестор придет/уйдет*
+
+Иностранный инвестор иностранному инвестору -- рознь. Например,  автопроизводители, приманиваемые налоговыми преференциями, приходят с инвестициями надолго. Сложно представить, что при первом возникновении тревоги такие инвесторы кинуться увольнять квалифицированных рабочих и вывозить производственное оборудование. Производство -- это всегда сложный процесс, который очень долго выстраивается и поэтому никто никогда не будет его разрушать из-за финансовой конъюнктуры. Также существуют спекулятивный капитал, который любит играть в так называемый карри-трейд: покупать валюту иностранного государства и далее на эту валюту местные ОФЗ с гарантированными процентными выплатами. В силу того, что валюта заимствования, например, йена может быть занята под 0.5%, а доходность ОФЗ будет 6-8% то практически без риска можно получать неплохой такой процент, особенно если имеется доступ к большому кредитному плечу для таких операций. Кроме того, вместо облигаций можно приобрети акции и получить еще большую прибыль, но уже с большим риском. Естественно, когда на рынке капитала появляется сомнение в платежеспособности эмитента облигаций, или же появляется подозрение о наличие курсовых рисков, или же просто на душе становится тревожно, то такие инвесторы теряя тапки бегут прочь, раскачивая финансовую систему государства, в которое вкладывались средства. В завершении краткой вводной про виды инвесторов напомню, что инвестиции первого рода называются прямыми инвестициями, а второго - портфельными инвестициями и именно вторые будут разобраны далее.
+
+Опять же нет смысла отрицать того факта, что курс рубля зависит от притока или бегства иностранного капитала, но насколько данный фактор является значимым? Так ли он важен на самом деле сегодня? Ответ на этот вопрос может быть получен с помощью отчетов ЦБ РФ, которые называются Платежный баланс и Международная инвестиционная позиция. Вообще в этих отчетах содержится много ответов, но почему то ссылаться на них никто не любит, точнее сказать, по факту практически никто не ссылается, когда пытается размышлять о курсе рубля. Могу лишь заметить, что очень-очень зря. 
+
+<details><summary>Кратко об отчетах </summary>
+<p>
+
+Сталкиваясь с терминами Платежный баланс и Чистая международная инвестиционная позиция можно немного растеряться так как не понятно зачем один отчет и зачем второй. Почему в конце концов нельзя все поместить в один? 
+
+Дело в том, что Платежный баланс баланс отображает сальдо текущих операций и трансфертов по какому-либо счету за квартал. Наступает новый квартал и начинается новый учет трансфертов. Данный отчет позволяет понять каким образом осуществляется трансграничное движение денежных средств и этим свойством похож на отчет движения денежных средств в бухгалтерском учете. Отчет Международной инвестиционной позиции имеет иной смысл и обладает свойством накопления и больше похож на отчет об активах/пассивах в аналогии с бухгалтерским учетом. В простом случает этот отчет как бы аккумулирует трансферты из Платежного баланса. В теории накопленный итог должен равняться его остаткам/остаточной позиции т.е. график трансфертов по счету с накоплением должен соответствовать итоговой инвестиционной позиции, но это лишь в теории. Дело в том, что инвестиционная позиция может быть переоценена по той или иной причине в большую или меньшую сторону. Такая переоценка возможна как следствие изменений рыночных оценок стоимости активов: облигаций, акций и других ценных бумаг.
+
+</p>
+</details>
+
+```{r, fig.height=7}
+# link_balance <- "https://www.cbr.ru/vfs/statistics/credit_statistics/bop/bal_of_payments_standart.xlsx"
+# download.file(link_balance, "data/balance.xlsx")
+
+# link_balance <- "https://www.cbr.ru/vfs/statistics/credit_statistics/iip/53-iip.xlsx"
+# download.file(link_balance, "data/position.xlsx")
+
+get_report <- function(set_report){
+  #set_report <- "balance"
+  if(set_report == "position"){
+    set_col_num <- 1
+    set_skip <- 3
+  }else{
+    if(set_report == "balance"){
+      set_col_num <- 2
+      set_skip <- 8 
+    }else{
+      stop("Choose one option: 'position' or 'balance'")
+    }
+  }
+  
+  report_xlsx <- list.files("data/") %>% 
+    str_subset(set_report) %>% 
+    str_subset("\\.xlsx")
+
+  report_formats <- xlsx_formats(str_c("data", "/", report_xlsx))
+  report_cells <- xlsx_cells(str_c("data", "/", report_xlsx), include_blank_cells = FALSE)
+  
+  report_indent <- report_cells %>% 
+    slice(-c(1:set_skip)) %>%
+    filter(!str_detect(character, "Остаток") | is.na(character)) %>% 
+    filter(col == set_col_num) %>% 
+    select(row, local_format_id) %>% 
+    mutate(indent = report_formats$local$alignment$indent[local_format_id]) %>% 
+    select(indent) 
+  
+  report_cells %>% 
+    slice(-c(1:set_skip)) %>% 
+    filter(!str_detect(character, "Остаток") | is.na(character)) %>% 
+    behead(direction = "up", name = header) %>% 
+    select(row, data_type, header, character, numeric) %>% 
+    spatter(key = header) %>% 
+    bind_cols(report_indent) %>%
+    select(-row, name = `<NA>`, indent) %>% 
+    mutate(name = str_trim(name))
+}
+
+#get section hirarhy
+get_lvl_value <- function(set_df){
+  lvls <- unique(set_df$indent) %>% 
+    sort() 
+  
+  lvl_names <- str_c(lvls, "lvl")
+  
+  df <- matrix(NA_character_, nrow = nrow(set_df), ncol = length(lvl_names)) %>% 
+    as_tibble() %>% 
+    set_names(lvl_names) %>% 
+    bind_cols(set_df)
+  
+  for(j in seq_along(lvls)){
+    if(df$indent[1] == lvls[j]){df[1, j] <- df$name[1]} else{df[1, j] <- NA}
+    for(i in 2:nrow(df)){
+      if(df$indent[i] == lvls[j]){df[i, j] <- df$name[i]}
+      else{
+        if(df$indent[i] > lvls[j]){
+          df[i, j] <- df[i-1, j]}
+        else{df[i, j] <- NA}
+        }
+    }
+  }
+  df
+}
+
+clean_report <- . %>% 
+  mutate(across(!c(matches("lvl"), "name", "indent"), ~replace(., is.na(.) | . == "..." , "0") %>% as.numeric())) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(!c(matches("lvl"), "name", "indent")))) %>% 
+  filter(abs(total) > 0.2) %>% 
+  ungroup() %>% 
+  select(-total)
+
+balance <- get_report("balance") %>% 
+  get_lvl_value() %>% 
+  clean_report() %>% 
+  janitor::remove_empty(which = "cols") %>% 
+  select(matches("lvl"), name, indent, matches("квартал")) %>% 
+  pivot_longer(-c(name, indent, matches("lvl")), names_to = "period") %>% 
+  mutate(date_qtr = zoo::as.yearqtr(period, format = "%q квартал %Y г.")) %>% 
+  arrange(date_qtr) %>% 
+  group_by(across(matches("lvl")), name) %>% 
+  mutate(value_csum = cumsum(value)) %>% 
+  ungroup()
+  
+position <- get_report("position") %>% 
+  get_lvl_value() %>% 
+  clean_report() %>% 
+  pivot_longer(-c(name, indent, matches("lvl")), names_to = "period") %>% 
+  mutate(period = as.Date(period, format = "%Y-%m-%d"),
+         date_qtr = zoo::as.yearqtr(period)) %>% 
+  # mutate(name = case_when(str_detect(name, "Чистая международная инвестиционная позиция") ~ "position",
+  #                         str_detect(name, "Активы") ~ "assets",
+  #                         str_detect(name, "Обязательства") ~ "liability",
+  #                         str_detect(name, "Резервные активы") ~ "reserve",
+  #                         TRUE ~ name)) %>% 
+  group_by(name) %>% 
+  mutate(chng = value - lag(value, default = 0)) %>% 
+  ungroup() 
+
+
+balance_liability <- filter(balance, `2lvl` == "Портфельные инвестиции"  & `3lvl` == "Чистое принятие обязательств" & !is.na(`4lvl`) & is.na(`5lvl`) & str_detect(`4lvl`, "Участие|Долговые"))
+position_liability <- filter(position, `0lvl` == "Обязательства" & `2lvl` == "Портфельные инвестиции" & !is.na(`4lvl`) & is.na(`5lvl`)) 
+balance_asset <- filter(balance, `2lvl` == "Портфельные инвестиции"  & `3lvl` == "Чистое приобретение финансовых активов" & !is.na(`4lvl`) & is.na(`5lvl`) & str_detect(`4lvl`, "Участие|Долговые"))
+position_asset <- filter(position, `0lvl` == "Активы" & `2lvl` == "Портфельные инвестиции" & !is.na(`4lvl`) & is.na(`5lvl`)) 
+
+
+p1 <- balance_liability %>%
+  ggplot((aes(date_qtr))) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 20) +
+  scale_y_continuous(labels = scales::label_dollar(scale = 1e-3, prefix = "b$")) +
+  geom_col(aes(y = value_csum, fill = `4lvl`), position = "dodge", alpha = .5) + 
+  geom_line(data = position_liability, aes(y = value, group = `4lvl`), alpha = .2, size = 3) +
+  geom_line(data = position_liability, aes(y = value, col = `4lvl`), lty = 5) +
+  theme(legend.position = "top") + 
+  #guides(fill = guide_legend(ncol = 1)) + 
+  zoo::scale_x_yearqtr(format = "%yQ%q", n = 20) + 
+  labs(x = "отчетный квартал", y = "Чистое принятие\nобязательств(столбики)\n---\nОбязательства(линии)", fill = "", col = "")
+
+p2 <- balance_asset %>%
+  ggplot((aes(date_qtr))) + 
+  annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 20) +
+  scale_y_continuous(labels = scales::label_dollar(scale = 1e-3, prefix = "b$")) +
+  geom_col(aes(y = value_csum, fill = `4lvl`), position = "dodge", alpha = .5) + 
+  geom_line(data = position_asset, aes(y = value, group = `4lvl`), alpha = .2, size = 3) +
+  geom_line(data = position_asset, aes(y = value, col = `4lvl`), lty = 5) +
+  theme(legend.position = "top") + 
+  #guides(fill = guide_legend(ncol = 1)) + 
+  zoo::scale_x_yearqtr(format = "%yQ%q", n = 20) + 
+  labs(x = "отчетный квартал", y = "Чистое приобретение\nфинансовых активов(столбики)\n---\nАктивы(линии)", fill = "", col = "")
+
+
+p1/p2 + plot_layout(guide = "collect") + 
+  plot_annotation(caption = "Источник: ЦБ РФ", title = "Накопленные трансферты по принятию/приобретению обязательств\nв сравнении с позицией активов/обязательств") & 
+  theme(legend.position = "bottom", text = element_text(color = "gray60"))
+```
+
+Выкладывать график `Чистое принятие обязательств` ровно как график `Чистое приобретение финансовых активов` не очень интересно в силу того, что выводов по нервной пиле значений сделать совершенно невозможно. Поэтому эти два показателя представлены в виде накопленного итога трансфертов по счету за каждую отчетную дату. На верхней диаграмме отчетливо видно как объем `r colorize(my_pal[2], "позиции")` обязательств резидентов РФ неизменно ходит возле отметки 200 млрд.$ тогда как накопленный итог по счету в 2014 году перешел в отрицательную область. Другими словами, с 2008 года наблюдается ползучий отток иностранного капитала из российского рынка акций. Откуда же тогда рост индекса ММВБ с пика 2008 года (~2000 пунктов) до пика 2021 (~4000 пунктов) т.е. фактически в два раза? Очевидно, что за счет резидентов или внутреннего ресурса. Таким образом, доля нерезидентов в капитализации российского рынка[^1] обрушилась с **~75% в 2008 году** на локальном пике до **~25% в 2021 году**. 
+
+Переходя от `r colorize(my_pal[2], "акций")` к `r colorize(my_pal[1], "облигациям")`, нерезиденты несущественно нарастили за последнее время позицию в долговых бумагах - приблизительно с **50 млрд.$ в 2008** до **100 млрд.$** в 2021. При этом накопленный итог по трансфертам в целом совпадает с позицией по счету `Долговые ценные бумаги`
+
+[^1]:Капитализация рынка акций на 30 июня 2021 года составила 59,84 трлн рублей *818,02 млрд долларов США*. Комиссионные доходы на рынке акций выросли на 22,9% за счет увеличения объемов торгов на 23,5%. https://www.moex.com/n35789/?nt=120
+
+Любопытно, что в случае обязательств остального мира перед резидентами РФ в части долговых бумаг ситуация совершенно обратная. Накопленный объем трансфертов по счету превышает оценку позиции. Иными словами, долговые бумаги перманентно переоценивались в меньшую сторону: соответственно не в пользу резидентов. Трансферты резидентов, связанные с покупкой иностранных акций за последнее время выросли буквально из нулевых значений и достигли **15 млрд.$** в 2021. Данный факт знаменует превращение РФ в нового игрока на рынке международного капитала.🏌
+
+## Итоги
+
+Подведем итоги краткого разбора расхожего набора мантр, которыми оперируют СМИ и аналитики-политики:
+
+1. **Курс рубля по-прежнему существенно зависит от стоимости нефти** чего бы там не заявляли официальные лица. Зависимость практически не изменилась несмотря на фундаментальные изменения в виде некоторого сокращения доли нефти в экспорте. Другой вопрос, что такая мантра абсолютно не объясняет почему в последнее время при растущей нефти падает рубль
+2. **Ситуация с исполнением бюджета никак не влияет на курс рубля через показатель стоимости барреля нефти Brent, выраженной в рублях.** Работает логически обратная зависимость: исполнение бюджета зависит от колебаний курса и стоимости нефти, по сути являясь чуть ли не единственным сложно-контролируемым фактором в бюджетном управлении
+3. **Курс рубля существенно меньше зависит от настроений иностранных инвесторов** в силу утраты доминирующей доли в рыночной капитализации российского рынка акций. Некоторое увеличение позиции иностранных инвесторов в долговых бумагах, в частности в ОФЗ -- существенно ситуации не меняет 
+
+Любопытно, что все расхожие мантры пытаются ответить на простые вопросы: Почему рубль падал 📉 на протяжении последнего десятилетия? Почему так происходило, а не иначе? Что будет происходить в будущем? Вразумительный ответы на эти вопросы по-прежнему отсутствуют и малообоснованные мантры тут не великие помощники. Именно этот пробел считаю важным заполнить в будущих заметках. 
+
+Простой способ узнать о новых публикациях -- подписаться на Telegram-канал:
+<div class="telegram-icon" align="left">
+<a href="https://t.me/investcookies" target="_blank" rel="noopener noreferrer me">
+🍪🍪🪙 InvestCookies 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.509 1.793.997 3.592 1.48 5.388.16.36.506.494.864.498l-.002.018s.281.028.555-.038a2.1 2.1 0 0 0 .933-.517c.345-.324 1.28-1.244 1.811-1.764l3.999 2.952.032.018s.442.311 1.09.355c.324.022.75-.04 1.116-.308.37-.27.613-.702.728-1.196.342-1.492 2.61-12.285 2.997-14.072l-.01.042c.27-1.006.17-1.928-.455-2.474a1.654 1.654 0 0 0-1.034-.407z" />
+</svg>
+</a>
+</div>
+
+
+
