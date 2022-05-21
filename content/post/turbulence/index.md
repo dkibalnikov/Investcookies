@@ -170,4 +170,4 @@ cover:
 
 [^1]: <https://www.cbr.ru/statistics/macro_itm/svs/bop-eval/>
 
-[^2]: 2
+[^2]: <https://www.moex.com/a8135/>
