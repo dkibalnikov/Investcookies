@@ -234,7 +234,6 @@ position_liability <- filter(position, `0lvl` == "Обязательства" & 
 balance_asset <- filter(balance, `2lvl` == "Портфельные инвестиции"  & `3lvl` == "Чистое приобретение финансовых активов" & !is.na(`4lvl`) & is.na(`5lvl`) & str_detect(`4lvl`, "Участие|Долговые"))
 position_asset <- filter(position, `0lvl` == "Активы" & `2lvl` == "Портфельные инвестиции" & !is.na(`4lvl`) & is.na(`5lvl`)) 
 
-
 p1 <- balance_liability %>%
   ggplot((aes(date_qtr))) + 
   annotate("text_npc", npcx = .5, npcy = .5, label = "InvestCookies.ru", color = "#1D1E20", alpha = .9, size = 20) +
