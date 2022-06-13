@@ -1,0 +1,248 @@
+---
+title: "Кому на Руси жить хорошо? 🤔"
+author: "🍪🍪🪙"
+date: 2022-06-13
+categories: ["экономика"]
+tags: ["кризис", "для всех", "анализ", "бизнес"]
+ShowToc: true
+cover:
+    image: "morozova.png"
+    # can also paste direct link from external site
+    # ex. https://i.ibb.co/K0HVPBd/paper-mod-profilemode.png
+    alt: "Морозова"
+    caption: ""
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE, fig.width=7.5)
+
+# library(ggplot2)
+library(thematic)
+# library(plotly)
+library(echarts4r)
+library(tidyverse)
+library(quantmod)
+# library(data.table)
+# library(collapse)
+library(DT)
+library(janitor)
+library(readxl)
+library(lubridate)
+
+thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", font = font_spec("Roboto"), sequential = firatheme::firaPalette(100), qualitative = firatheme::firaPalette(50))
+sysfonts::font_add_google("Roboto")
+
+e_common(font_family = "Verdana", theme = "infographic")
+```
+
+## Перемены 🔄
+
+Подсознательно мы не очень любим перемены, особенно тогда, когда они происходят незапланированно. Мы ожидаем, что все вернется в исходное положение и, порой сами того не замечая, приспосабливаемся к новым условиям. Надо сказать, что весьма сложно понять в каком направлении меняются условия на основе исключительно собственных наблюдений. Поэтому считаю разумным обращаться к объективной информации, особенно сейчас, когда такая информация стала более оперативной чем когда-либо прежде. Ранее в заметке [Кому не страшен COVID 😱🦠](/post/money_flows/) я уже делал разбор какие структурные деформации происходили в период пандемии COVID и теперь настал черед посмотреть еще раз как обстоят дела в преломлении новых событий. 
+
+Одним из основных интересов лично для меня всегда была сфера ИТ - такая интригующая и полная фетишей: бигдата, машин лернинг, криптовалюты, искусственный интеллект и прочее прочее. Эта отрасль -- является стратегическим фокусом для правительства РФ, которое сделало значительные преференции в виде налоговых льгот для ИТ-компаний и субсидированной ипотеки для ИТ-специалистов. Тем не менее, вопросы о том насколько сейчас востребованы ИТ-специалисты и по какой цене -- скорее повисли в воздухе, чем по ним есть полная ясность.
+
+Методическое описание того какие данные используются для разбора и как они используются можно найти в статье [Кому не страшен COVID 😱🦠](/post/money_flows/#covid---экономика). Напомню лишь, что рассматриваемые данные характеризуют денежные потоки в сторону различных отраслей, что естественным образом говорит об улучшении/ухудшении состояния дела в такой отрасли. 
+ 
+## Аутсайдеры 😭
+
+Аутсайдеры - это отрасли, которые в среднем на промежутке 2020-2022 годов показали худшую динамику в сравнении с 2019 годом: 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# На листе 5 ("Откл входящих ср.2019, мес") представлены изменения сезонно сглаженных данных среднего дневного значения 
+# входящего финансового потока за месяц по классам ОКВЭД2 для страны в целом, 
+# в % от среднего дневного уровня входящего финансового потока за 2019 год.
+
+flws_mnth <- read_excel("data/stat_finflows.xlsx", sheet = "5", range = "B12:AE97", col_names = FALSE) %>% 
+  pivot_longer(-(1:2), names_to = "index") %>% 
+  select(industry = 1, everything(), -2) %>% 
+  mutate(index = as.numeric(str_remove_all(index, "\\.")) - 2,
+         year_index = ceiling(index/12) - 1,
+         month = index - year_index*12, 
+         year = 2020 + year_index,
+         date = ymd(str_c(year, "-", month, "-20")),
+         value = round(value + 1, 2))
+
+weak <- group_by(flws_mnth, industry) %>% 
+  summarise(mean = mean(value)) %>% 
+  slice_min(order_by = mean, n = 8)
+
+fear <- flws_mnth %>% 
+  filter(date > as.Date("2022-02-01")) %>% 
+  group_by(industry) %>% 
+  summarise(min = min(value)) %>% 
+  slice_min(order_by = min, n = 8)
+
+strong <- group_by(flws_mnth, industry) %>% 
+  summarise(mean = mean(value)) %>% 
+  slice_max(order_by = mean, n = 8)
+
+volatile <- group_by(flws_mnth, industry) %>% 
+  summarise(sd = sd(value)) %>% 
+  slice_max(order_by = sd, n = 8)
+
+stable <- group_by(flws_mnth, industry) %>% 
+  summarise(sd = sd(value)) %>% 
+  slice_min(order_by = sd, n = 8)
+
+flws_mnth |> 
+  filter(industry %in% weak$industry) |>
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_tooltip(trigger = "axis", digits = 0, textStyle = list(color = "white"), axisPointer = list(type = "line")) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Топ 8 аутсайдеров", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows")
+```
+
+Любопытно, что хайповая отрасль разработки ПО сразу была обнаружена в группе аутсайдеров, что лишний раз напоминает о сильной зависимости этой отрасли от инвестиционных потоков в других отраслях. Фактически отрасль обрушилась **в три раза** за последнии месяцы и это еще без учета сопутствующего инфляционного давления. Очевидно, что частично такой обвал связан с уходом крупных компаний, продававших российских программистов западным заказчикам. В этом свете отток ИТ-специалистов за рубеж естественно связан с тем фактом, что работы в РФ сейчас не очень много 🤔 В противном случае, зарплаты и прибыль в этом секторе должна была бы тоже упасть в три раза. Впрочем, надвигающийся долговой кризис в западных странах уже совсем скоро скажется на востребованности ИТ-специалистов по всему миру и часть специалистов видимо вернется, создавая давление на рынок труда и зарплатные ожидания. В общем - зима близко ❄️
+
+Кроме бесспорного аутсайдера в этой группе также присутствует сфера развлечения и туризма, которые начали оправляться от последствий пандемии, но в марте 2022 года их накрыла новая волна негатива, за которой уже в апреле последовал весьма бурный рост. 
+
+В целом визуально, наблюдая картинку динамики по отраслям-аутсайдерам можно сказать, что пандемия нанесла гораздо более сильный удар по этим отраслям чем политический кризис начала 2022 года. Даже многострадальная разработка программного обеспечения в апреле 2020 года упала в **4 раза**, тогда как в апреле 2022 только в **3 раза** 
+
+## СВО-зависимые 🪖
+
+Отдельно интересно взглянуть на отрасли, которые сильнее всего провалились именно в период СВО т.е. начиная с февраля 2022 года:
+
+```{r}
+flws_mnth |> 
+  filter(industry %in% fear$industry) |>
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Топ 8 СВО-зависимых", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows")
+```
+
+Самым любопытным наблюдением для этой диаграммы -- является факт существенного падения денежных потоков в адрес производства табачных изделий до отметки **41%** (падение **-59%**). Это какой-то феномен, который достаточно трудно чем-то объяснить. Также существенно просела добыча полезных ископаемых до уровня **62%** (падение **-38%**) с тенденцией дальнейшего снижения на фоне наложенных западными странами санкций. 
+
+## Лидеры 😊
+
+Лидерами роста на промежутке с начала 2020 года до апреля 2022 -- выбраны отрасли, которые в среднем за указанный промежуток имели повышенный денежный поток:
+
+```{r}
+flws_mnth |> 
+  filter(industry %in% strong$industry) |>
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Топ 8 лидеров", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows")
+```
+
+В этой группе также присутствует табачная отрасль, которая несмотря на существенное сокращение последних месяцев, остальное время была в лидерах по входящим денежным потокам. 
+
+Думаю, именно этот раздел позволяет ответить на вопрос, который стал заголовком к этой заметке: *"Кому на Руси жить хорошо? 🤔"* на период 2020 - 2022:
+
+- Ветеринарная деятельность -- **рост на +69%**
+- Деятельность органов государственного управления -- **рост на +228%**, что говорит о нарастании государственных расход и увеличении межбюджетных трансфертов 
+- Ликвидация загрязнений -- **рост на +140%** 
+- Утилизация отходов -- **рост на +47%**, что не вызывает лично у меня удивления, особенно когда я смотрю на квитанцию с начислениями за вывоз мусора
+- Фармацевтика - **рост на +100%**, что связано с интенсивным импортозамещением последних лет, о котором уже наверное много слышали 
+- Финансовые услуги -- **рост на +87%** т.е. несмотря на существенное падение капитализации банковского сектора есть неплохие надежды на вполне приличные цифры в финансовых отчетах
+
+## Нестабильные 🤪
+
+Следующей группой идут самые нестабильные отрасли. В данную группу отрасли отбирались по критерию наибольших колебаний показателя входящего денежного потока:
+
+```{r}
+flws_mnth |> 
+  filter(industry %in% volatile$industry) |>
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Топ 8 нестабильных", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows")
+```
+
+## Стабильные 😎
+
+Стабильные отрасли отбирались соответственно как абсолютно противоположные предыдущей группе т.е. отрасли с самыми слабыми колебаниями за рассматриваемый период:
+
+```{r}
+flws_mnth |> 
+  filter(industry %in% stable$industry) |>
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Топ 8 стабильных", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows")
+```
+
+## Общая картина 🖼
+
+Весьма обширное количество отраслей не попали в номинации, поэтому привожу динамику сразу для всех секторов экономики РФ:
+
+```{r}
+flws_mnth |> 
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = FALSE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white"), axisPointer = list(type = "cross")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Все сектора", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows") 
+```
+
+В заключении приведу аналитические разрезы валовой добавленной стоимости, которые предоставляет ЦБ наряду с отраслевой информацией. Напомню, что валовая добавленная стоимость (ВДС) -- это основной компонент ВВП страны -- главной метрики экономического благоденствия. 
+
+```{r}
+GVA_mnth <- read_excel("data/stat_finflows.xlsx", sheet = "5", range = "B3:X10", col_names = FALSE) %>% 
+  pivot_longer(-(1:2), names_to = "index") %>% 
+  select(industry = 1, everything(), -2) %>% 
+  mutate(index = as.numeric(str_remove_all(index, "\\.")) - 2,
+         year_index = floor(index/13),
+         month = index - year_index*12, 
+         year = 2020 + year_index,
+         date = ymd(str_c(year, "-", month, "-20")),
+         value = round(value + 1, 2))
+
+GVA_mnth  |> 
+  group_by(industry) |>
+  e_charts(date) |>
+  e_river(value, label = list(show = TRUE), itemStyle = list(opacity = 0.7, shadowBlur = 20, shadowColor = 'rgba(0, 0, 0, 0.8)')) |>
+  e_legend(type = "scroll", selector = TRUE, bottom = 0,  padding = 30) |>
+  e_tooltip(trigger = "axis", digits = 2, textStyle = list(color = "white"), axisPointer = list(type = "line")) |>
+  e_draft("InvestCookies", size = "80px", opacity = 0.9) |>
+  e_grid(top = "30%", height = "90%") |>
+  e_title(text = "Валовая добавленная стоимость", subtext = "Данные ЦБ РФ", left = 1, sublink = "https://www.cbr.ru/analytics/finflows") 
+```
+
+Таким образом, весьма непростой период для экономики РФ характеризуется следующими наблюдениями: 
+
+- Наиболее существенный рост испытали отрасли, ориентированные на государственный спрос, роста таких отраслей составил - **+89%**
+- Также относительно успешными можно считать отрасли, ориентированные на экспорт, их рост составил - **+17%**
+- Стагнирующими отраслями можно назвать: отрасли, ориентированные на потребительский спрос **+5%** и отрасли, ориентированные на промежуточное потребление **+5%**
+- Существенное сжатие испытывают отрасли, ориентированные на инвестиционный спрос, падение **-4%**
+
+Для всех денежных потоков настоящего обзора объективная оценка результатов требует поправки на инфляцию, которая была весьма существенной в последние годы и накопленным итогом Индекс потребительских цен вырос на **27%** за период с начала 2020 по май 2022 года
+
+Простой способ узнать о новых публикациях -- подписаться на Telegram-канал:
+<div class="telegram-icon" align="left">
+<a href="https://t.me/investcookies" target="_blank" rel="noopener noreferrer me">
+🍪🍪🪙 InvestCookies 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.509 1.793.997 3.592 1.48 5.388.16.36.506.494.864.498l-.002.018s.281.028.555-.038a2.1 2.1 0 0 0 .933-.517c.345-.324 1.28-1.244 1.811-1.764l3.999 2.952.032.018s.442.311 1.09.355c.324.022.75-.04 1.116-.308.37-.27.613-.702.728-1.196.342-1.492 2.61-12.285 2.997-14.072l-.01.042c.27-1.006.17-1.928-.455-2.474a1.654 1.654 0 0 0-1.034-.407z" />
+</svg>
+</a>
+</div>
+
+
