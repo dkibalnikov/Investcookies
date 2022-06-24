@@ -131,7 +131,7 @@ brks <- quantile(tickers1[, 3:6], probs = seq(.05, .95, .05), na.rm = TRUE)
 # Табличка с рюшечками и кружавчиками 
 slice_sample(tickers1, n = 100) %>% # 100 случайных наблюдений
   datatable(style = 'bootstrap4',  extensions = 'Responsive', options = list(pageLength = 10),
-          caption = "Котировки технологических гигантов") %>% 
+          caption = "Котировки технологических гигантов в относительных значениях") %>% 
   formatRound(c(3:8), digits = 2, mark = " ") %>% 
   formatStyle(3:8, backgroundColor = styleInterval(brks, firatheme::firaPalette(length(brks) + 1)))
 ```
