@@ -9,7 +9,7 @@ ShowToc: true
 cover:
     image: "golf.png"
     alt: "<Гольф>"
-    caption: "<text>"
+    caption: "<Гольф>"
     relative: true # To use relative path for cover image, used in hugo Page-bundles
 ---
 
