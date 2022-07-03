@@ -6,7 +6,7 @@ title: InvestCookies
 params:
     homeInfoParams:
         Title: 🍪 🍪 🪙
-        Content: Блог про инвестиции, финансы, экономику, data scienсe, визуализацию -- **Больше количественного и качественного анализа финансовых рынков** 😎  <br><br> Hi there 👋 this is blog about data science, financial markets and economics
+        Content: Блог про инвестиции, финансы, экономику, data scienсe, визуализацию -- **Больше количественного и качественного анализа** 😎  <br><br> Hi there 👋 this is blog about data science, financial markets and economics
     socialIcons: # optional
         - name: "email"
           url: "mailto:d.kibalnikov@gmail.com"
