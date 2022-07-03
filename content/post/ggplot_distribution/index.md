@@ -14,9 +14,7 @@ cover:
     relative: true # To use relative path for cover image, used in hugo Page-bundles
 ---
 
-```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, echo = TRUE, message = FALSE, warning = FALSE, error = FALSE, fig.width=7.5)
-```
+
 
 Это тест
 
