@@ -4,7 +4,7 @@ author: "🍪🍪🪙"
 date: 2022-07-05
 categories: ["data science"]
 tags: ["analysis", "R", "для новичков", "бизнес"]
-math: true # when math activated -> don't use brackets:( and )
+math: false # when math activated -> don't use brackets:( and )
 ShowToc: true
 cover:
     image: "golf.png"
