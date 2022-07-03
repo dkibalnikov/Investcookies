@@ -8,8 +8,7 @@ math: true # when math activated -> don't use brackets:( and )
 ShowToc: true
 cover:
     image: "golf.png"
-    alt: "<Гольф>"
-    caption: "<Гольф>"
+    alt: "Гольф" 
     relative: true # To use relative path for cover image, used in hugo Page-bundles
 ---
 
