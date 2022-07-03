@@ -1,6 +1,6 @@
 ---
-title: "Трюки ggplot2 - легенда 🤹🤹🤹️"
+title: "Неопределенность и бизнес"
 author: "🍪🍪🪙"
-date: 2022-06-19
+date: 2022-07-05
 categories: ["data science"]
 ---

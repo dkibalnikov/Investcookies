@@ -1,7 +1,7 @@
 ---
 title: "Неопределенность и бизнес 🏌🏾⛳️"
 author: "🍪🍪🪙"
-date: 2022-07-05
+date: 2022-07-03
 categories: ["data science"]
 tags: ["analysis", "R", "для новичков", "бизнес"]
 math: true # when math activated -> don't use brackets:( and )
