@@ -128,7 +128,7 @@ p2 <- ggplot(tickers1) +
   scale_color_manual(values = my_pal, labels = tick_names) + 
   facet_grid(~Ticker, labeller = labeller(Ticker = tick_names))
 
-p1/p2 + plot_layout(guides='collect') + plot_annotation(title = "Динамика котирок")
+p1/p2 + plot_layout(guides='collect') + plot_annotation(title = "Динамика котировок")
 ```
 
 Видно, что трюк отлично сработал: брендинговая надпись появилась без особых проблем и вместо двух строчек кода для построения графика получилась только одна, что повысило читаемость кода.   
