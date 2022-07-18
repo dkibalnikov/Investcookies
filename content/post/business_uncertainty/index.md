@@ -272,25 +272,25 @@ shapiro.test(res_distr3$last)
 
 
 ```r
-wilcox.test(res_distr1$last, rep(50, 500), conf.level = 99.72)
+wilcox.test(res_distr1$last, mu = 50, conf.level = 99.72)
 ## 
-## 	Wilcoxon rank sum test with continuity correction
+## 	Wilcoxon signed rank test with continuity correction
 ## 
-## data:  res_distr1$last and rep(50, 500)
-## W = 130500, p-value = 0.1979
-## alternative hypothesis: true location shift is not equal to 0
+## data:  res_distr1$last
+## V = 64573, p-value = 0.5468
+## alternative hypothesis: true location is not equal to 50
 ```
 Значимость высокая и следовательно можно **не отвергать** нулевую гипотезу о том, что попадания гольфиста приходятся на 50 м.
 
 
 ```r
-wilcox.test(res_distr3$last, rep(50, 500), conf.level = 99.72)
+wilcox.test(res_distr3$last, mu = 50, conf.level = 99.72)
 ## 
-## 	Wilcoxon rank sum test with continuity correction
+## 	Wilcoxon signed rank test with continuity correction
 ## 
-## data:  res_distr3$last and rep(50, 500)
-## W = 222000, p-value < 2.2e-16
-## alternative hypothesis: true location shift is not equal to 0
+## data:  res_distr3$last
+## V = 117417, p-value < 2.2e-16
+## alternative hypothesis: true location is not equal to 50
 ```
 Значимость низкая и следовательно можно **отвергнуть** нулевую гипотезу о том, что попадания гольфиста приходятся на 50 м.
 
