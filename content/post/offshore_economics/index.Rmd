@@ -1,5 +1,5 @@
 ---
-title: "Оффшорный рубль 🏝🏝🏝"
+title: "Офшорный рубль 🏝🏝🏝"
 author: "🍪🍪🪙"
 date: 2022-08-07
 categories: ["экономика"]
@@ -8,7 +8,7 @@ math: false
 ShowToc: true
 cover:
     image: "dark_island.jpeg"
-    alt: "<Таинственный оффшор>"
+    alt: "<Таинственный офшор>"
     caption: "<text>"
     relative: true # To use relative path for cover image, used in hugo Page-bundles
 ---
