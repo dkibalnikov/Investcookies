@@ -1,0 +1,180 @@
+
+library(tidyverse)
+library(fst)
+library(janitor)
+library(tidyxl)
+library(unpivotr)
+library(readxl)
+
+
+
+
+
+# Balance and position ----------------------------------------------------
+# Download
+path <- "content/post/offshore_economics/"
+
+link_balance <- "https://www.cbr.ru/vfs/statistics/credit_statistics/bop/bal_of_payments_standart.xlsx"
+download.file(link_balance, str_c(path, "data/balance.xlsx"))
+link_balance <- "https://www.cbr.ru/vfs/statistics/credit_statistics/iip/53-iip.xlsx"
+download.file(link_balance, str_c(path, "data/position.xlsx"))
+
+
+# Get old values for reserve bvecause new reports do not contain ones
+balance_old <- read_fst("~/Documents/Cloud Mail.Ru/Projects/Investcookies/content/post/turbulence/data/balance.fst") %>% 
+  filter(tech_name == "reserve_saldo") %>% 
+  mutate(date_qtr = zoo::as.yearqtr(period, format = "%q квартал %Y г."))
+
+# Help functions
+get_report <- function(set_report, path){
+  # set_report <- "balance"
+  
+  set_col_num <- 1
+  set_skip <- 3 
+  
+  report_xlsx <- list.files(str_c(path, "data/")) %>% 
+    str_subset(set_report) %>% 
+    str_subset("^~", negate = TRUE) %>% 
+    str_subset("\\.xlsx")
+  
+  report_formats <- xlsx_formats(str_c(path, "data", "/", report_xlsx))
+  report_cells <- xlsx_cells(str_c(path, "data", "/", report_xlsx), include_blank_cells = FALSE)
+  
+  report_indent <- report_cells %>% 
+    slice(-c(1:set_skip)) %>%
+    filter(!str_detect(character, "Остаток") | is.na(character)) %>% 
+    filter(col == set_col_num) %>% 
+    select(row, local_format_id) %>% 
+    mutate(indent = report_formats$local$alignment$indent[local_format_id]) %>% 
+    select(indent) 
+  
+  report_cells %>% 
+    slice(-c(1:set_skip)) %>% 
+    filter(!str_detect(character, "Остаток") | is.na(character)) %>% 
+    behead(direction = "up", name = header) %>% 
+    select(row, data_type, header, character, numeric) %>% 
+    spatter(key = header) %>% 
+    bind_cols(report_indent) %>%
+    select(-row, name = `<NA>`, indent) %>%  
+    mutate(name = str_trim(name))
+}
+
+# Get section hirarhy
+get_lvl_value <- function(set_df){
+  lvls <- unique(set_df$indent) %>% 
+    sort() 
+  
+  lvl_names <- str_c(lvls, "lvl")
+  
+  df <- matrix(NA_character_, nrow = nrow(set_df), ncol = length(lvl_names)) %>% 
+    as_tibble() %>% 
+    set_names(lvl_names) %>% 
+    bind_cols(set_df)
+  
+  for(j in seq_along(lvls)){
+    if(df$indent[1] == lvls[j]){df[1, j] <- df$name[1]} else{df[1, j] <- NA}
+    for(i in 2:nrow(df)){
+      if(df$indent[i] == lvls[j]){df[i, j] <- df$name[i]}
+      else{
+        if(df$indent[i] > lvls[j]){
+          df[i, j] <- df[i-1, j]}
+        else{df[i, j] <- NA}
+      }
+    }
+  }
+  df
+}
+
+clean_report <- . %>% 
+  mutate(across(!c(matches("lvl"), "name", "indent"), ~replace(., is.na(.) | . == "..." , "0") %>% as.numeric())) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(!c(matches("lvl"), "name", "indent")))) %>% 
+  filter(abs(total) > 0.2) %>% 
+  ungroup() %>% 
+  select(-total)
+
+# Balance
+get_report("balance", path) %>% 
+  get_lvl_value() %>% 
+  clean_report() %>% 
+  janitor::remove_empty(which = "cols") %>% 
+  select(matches("lvl"), name, indent, matches("квартал")) %>% 
+  pivot_longer(-c(name, indent, matches("lvl")), names_to = "period") %>% 
+  mutate(date_qtr = zoo::as.yearqtr(period, format = "%q квартал %Y г.")) %>% 
+  arrange(date_qtr) %>% 
+  group_by(across(matches("lvl")), name) %>% 
+  mutate(value_csum = cumsum(value)) %>% 
+  ungroup()  %>% 
+  bind_rows(balance_old) %>% 
+  write_fst(str_c(path, "data/balance.fst"))
+
+# Position
+get_report("position", path) %>% 
+  get_lvl_value() %>% 
+  clean_report() %>% 
+  pivot_longer(-c(name, indent, matches("lvl")), names_to = "period") %>% 
+  mutate(period = as.Date(period, format = "%Y-%m-%d"),
+         date_qtr = zoo::as.yearqtr(period)) %>% 
+  group_by(name) %>% 
+  mutate(chng = value - lag(value, default = 0)) %>% 
+  ungroup() %>% 
+  write_fst(str_c(path, "data/position.fst"))
+
+# External debt -----------------------------------------------------------
+# Download
+years <- as.character(7:21) %>% 
+  if_else(str_count(.) == 1, str_c("0", .), .)
+
+map(years, ~download.file(str_c("http://www.cbr.ru/vfs/statistics/credit_statistics/loans/43-loans_", . , ".xls")
+                          , destfile = str_c("~/Downloads/loans_by_countries/", ., ".xls")))
+
+# Stack and some preparation
+loans0 <- years %>% 
+  map(~read_excel(str_c("~/Downloads/loans_by_countries/", ., ".xls"), skip = 4, col_types = c(rep("text", 4)))) %>% 
+  set_names(years) %>% 
+  bind_rows(.id = "year") %>% 
+  rename(country = `...1`) 
+
+loans0 %>% 
+  filter(!is.na(country)) %>% 
+  filter(!(is.na(Сальдо) | is.na(Привлечено) | is.na(Погашено))) %>% 
+  mutate(across(3:5, ~str_remove_all(., "\\s") %>% str_trim() %>% as.numeric())) %>% 
+  filter(!country %in% c("ВСЕГО", "По странам", "МЕЖДУНАРОДНЫЕ ОРГАНИЗАЦИИ")) %>% 
+  group_by(country) %>% 
+  mutate(cs_balance = cumsum(Сальдо),
+         cs_borrow = cumsum(Привлечено),
+         cs_paid = cumsum(Погашено), 
+         year = as.numeric(year)) %>% 
+  write_fst(str_c(path, "data/loans.fst"))
+
+
+
+
+# Direct invest -----------------------------------------------------------
+link_direct_invest <- "https://www.cbr.ru/vfs/statistics/credit_statistics/inv_in-country.xlsx"
+download.file(link_direct_invest, str_c(path, "data/direct_inves.xlsx"))
+
+direct_invest0 <- read_excel(str_c(path, "data/direct_inves.xlsx"), skip = 3) %>% 
+  drop_na(`2014`)
+
+direct_invest1 <- direct_invest0 %>% 
+  slice(-1) %>% 
+  pivot_longer(cols = -...1) %>% 
+  mutate(year = accumulate(name, \(out, input)if_else(str_detect(input, "^\\."), out, input)),
+         indx = 1, 
+         value = as.numeric(value),
+         year = as.numeric(year)) %>% 
+  select(country = ...1, year, value, indx) %>% 
+  group_by(year, country) %>% 
+  mutate(qtr = cumsum(indx),
+         date_qtr = year + (qtr - 1)/4) %>% 
+  group_by(country) %>% 
+  mutate(value_cs = cumsum(value)) %>% 
+  ungroup() %>% 
+  filter(year != "2007" & qtr != 5 & str_detect(country, negate = TRUE, regex("СТРАН|ВСЕГО", ignore_case = TRUE))) %>% 
+  replace_na(list(value = 0))
+
+write_fst(direct_invest1, str_c(path, "data/direct_invest.fst"))
+
+  
+
