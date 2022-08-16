@@ -1,7 +1,7 @@
 ---
 title: "Разбор отчтености VK"
 author: "🍪🍪🪙"
-date: 2022-08-17
+date: 2022-08-16
 categories: ["экономика"]
 tags: ["для всех", "анализ", "stock market", "для новичков", "бизнес"]
 math: false
