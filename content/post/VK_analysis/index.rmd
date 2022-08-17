@@ -7,7 +7,7 @@ tags: ["для всех", "анализ", "stock market", "для новичко
 math: false
 ShowToc: true
 cover:
-    image: "vladimir_kirienko"
+    image: "vladimir_kirienko.png"
     alt: "<Vladimir Kirienko>"
     caption: "<text>"
     relative: true # To use relative path for cover image, used in hugo Page-bundles
