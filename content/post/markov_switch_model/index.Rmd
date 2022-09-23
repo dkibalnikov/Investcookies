@@ -1,7 +1,7 @@
 ---
 title: "Так есть ли рецессия? 🔻🔻🔻"
 author: "🍪🍪🪙"
-date: 2022-09-09
+date: 2022-09-11
 # draft: true # mark as draft
 categories: ["data science"]
 tags: ["analysis", "R", "advanced", "stock market", "кризис", "матан", "прогнозирование"]
@@ -260,7 +260,7 @@ fitted_dt |>
 # Функция которая считает полезные метрики модели
 get_metrics <- function(dt){
   mtrx <- table(dt)
-  n <- fnrow(fitted_dt)
+  n <- fnrow(dt)
   accuracy <- round(fsum(diag(mtrx))/n, 2)
   precision = round(diag(mtrx) / colSums(mtrx) , 2)
   recall = round(diag(mtrx) / rowSums(mtrx), 2)
