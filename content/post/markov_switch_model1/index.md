@@ -1,7 +1,7 @@
 ---
 title: "Марковская модель с переключением 🕹⛓🕹"
 author: "🍪🍪🪙"
-date: 2022-09-17
+date: 2022-09-22
 # draft: true # mark as draft
 categories: ["data science"]
 tags: ["analysis", "R", "advanced", "stock market", "кризис", "матан", "прогнозирование"]
