@@ -2,16 +2,15 @@
 library(quantmod)
 library(stringi)
 
-getSymbols(c("PAYEMS", "INDPRO", "W875RX1", "CMRMTSPL", "USRECD", "RECPROUSM156N"), src = "FRED")
+getSymbols(c('USREC', 'UNRATE', 'T10Y3M', 'DFF'), src = "FRED")
 
-
-recession_xts <- cbind(USRECD, RECPROUSM156N) |> 
+indctrs_xts <- cbind(T10Y3M, DFF) |> 
   apply.monthly(fmean) |>
   as.data.table(keep.rownames = "date") |>
   tfm(date = stri_replace(date, replacement = "-01", regex = "-\\d\\d$") |> as.Date()) |> 
   as.xts()
 
-cbind(PAYEMS, INDPRO, W875RX1, CMRMTSPL, recession_xts) |> 
+cbind(USREC, UNRATE, indctrs_xts) |> 
   as.data.table(keep.rownames = "date") |> 
-  fsubset(date > as.Date("1968-01-01")) |>
-  fst::write_fst("content/post/US_recession1/data/indctrs.fst")
+  fsubset(date > as.Date("1982-01-01")) |>
+  fst::write_fst("content/post/US_recession2/data/indctrs.fst")
