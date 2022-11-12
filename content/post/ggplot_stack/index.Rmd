@@ -97,7 +97,8 @@ house  %>%
   annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
              label = "InvestCookies.ru", color = "#1D1E20") + 
   geom_bar(aes(y = after_stat(count), fill  = S_TIPKVARTIR), stat = "count", alpha = .6) + 
-  geom_text(aes(label = after_stat(count), y = after_stat(count)), stat = "count", alpha = .6, check_overlap = TRUE) +
+  geom_text(aes(label = after_stat(count), y = after_stat(count)), stat = "count", 
+            alpha = .6, check_overlap = TRUE, size = 2, angle = 45) +
   facet_wrap(~s_vidryn, nrow = 2) + 
   scale_x_date(date_breaks = "year", date_labels = "%Y") + 
   guides(fill = guide_legend(nrow = 2)) +
