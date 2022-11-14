@@ -11,7 +11,6 @@ setdiff(names(house_new), names(house_old))
 
 house <- rbindlist(list(house_new, house_old), fill = TRUE) |> 
   fsubset(s_mestdom == "Все территории - итого"| is.na(s_mestdom)) |>
-  fsubset(s_OKATO_code %chin% c("45000000000", "40000000000")) |> 
   tfm(month = fcase(PERIOD == "I квартал", "03", 
                     PERIOD == "II квартал", "06", 
                     PERIOD == "III квартал", "09", 
