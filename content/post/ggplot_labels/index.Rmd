@@ -1,0 +1,475 @@
+---
+title: "Трюки ggplot2 - подписи 🤹🤹🤹"
+author: "🍪🍪🪙"
+date: 2023-01-02
+# draft: true # mark as draft
+categories: ["data science"]
+tags: ["анализ", "R", "для новичков", "статистика", "инфляция"]
+math: false # when math activated -> don't use brackets:( and )
+ShowToc: true
+cover:
+    image: "olivie_herring.jpeg"
+    alt: "<Трюки ggplot2>"
+    caption: "<text>"
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, echo = TRUE, message = FALSE, warning = FALSE, error = FALSE, fig.width=7.5)
+```
+
+
+Продолжаю свою серию заметок про хитрости работы с `ggplot2`, предыдущие заметки серии:
+
+- [Трюки ggplot2 - легенда](/post/ggplot_legend/)
+- [Неопределенность и бизнес](/post/business_uncertainty/) 
+- [Трюки ggplot2 - распределения️](/post/ggplot_distribution/) 
+- [Трюки ggplot2 - агрегирование](/post/ggplot_stack/)
+
+## С новым 2023 годом 🎄
+
+Встреча нового года традиционно подразумевает праздничный стол, на котором практически всегда будут присутствовать салат оливье и селедка под шубой (далее по тексту просто Оливье и Шуба). Относительная доступность ингредиентов и простота приготовления сделали эти салаты настолько популярными, что без них сложно представить новогодний стол семьи любого уровня достатка. 
+
+Популярность салатов стала настолько высокой, что даже экономисты обратили на это внимание и начали использовать их в качестве бенчмарка для оценки продовольственной инфляции. Действительно, продовольственная корзина, используемая в качестве ориентира для оценка пропорций потребления продукции для большинства людей носит абстрактный характер, но вот рецепты популярных салатов знает практически каждый. Поэтому инфляция посчитанная через салаты вызывает больший интерес и доверие со стороны населения чем индекс CPI.
+
+В этой заметке я разберу структуру и динамику инфляции цен на Оливье и Шубу, попутно рассказав как можно работать с подписями для графиков `ggplot2`. Необходимая подготовка: 
+
+```{r}
+library(thematic) # пакет для автоматической установки стилей графиков 
+library(tidyverse) # набор пакетов по принципу "все включено", в который включен ggplot2
+library(ggpp) # расширение для ggplot2
+library(DT) # пакет создания интерактивных таблиц
+library(ggpattern) # пакет для использования текстур в графиках ggplot2
+library(magick) # пакет для работы с изображениями
+library(patchwork) # пакет для составления композиций графиков
+
+# Активируем тему для блога
+thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", 
+             font = font_spec("Roboto"), sequential = firatheme::firaPalette(100), 
+             qualitative = palette.colors(palette = "Tableau")) 
+
+# Сохраняем палитру в отдельную переменную
+my_pal <- palette.colors(palette = "Tableau") %>% unname() 
+```
+
+## Рецепты 🥗
+
+Первое с чего нужно начать -- это рецепты салатов. Немного покопавшись в интернете я нашел ресурс с удобным указанием ингредиентов в различных единицах измерений (штуки, граммы, килограммы) для [Оливье](https://1000.menu/cooking/34797-salat-olive-s-molochnoi-kolbasoi) и [Шубы](https://1000.menu/cooking/27805-salat-ryba-pod-shuboi)
+
+Я сделал выбор рецепта приготовления для 4 порций: в данном случае важны пропорции, а не количество порций.  Не исключаю, что существуют различные вариации на тему рецептов и каждая хозяйка может похвастать своим собственным секретным ингредиентом, но в данном случае желательно определить канонический набор, который имеет наиболее распространенное применение. Пожалуй, запишу рецепты в виде именованных векторов, с которыми потому будет очень удобно работать при вычислениях:
+
+```{r}
+# Оливье 
+olivier_rec <- c(0.3, 0.15, 0.3, 0.45, 0.3, 0.08, 0.08) %>% 
+  set_names(c("Колбаса вареная, кг", "Горох и фасоль, кг", 
+              "Яйца куриные, 10 шт.", "Картофель, кг", 
+              "Овощи натуральные консервированные, маринованные, кг", 
+              "Морковь, кг", "Майонез, кг"))
+
+# Шуба
+fur_herring_rec <- c(0.2, 0.3, 0.27, 0.32, 0.05, 0.07) %>% 
+  set_names(c("Яйца куриные, 10 шт.", "Картофель, кг", 
+              "Сельдь соленая, кг", "Свёкла столовая, кг", 
+              "Морковь, кг", "Майонез, кг"))
+```
+
+К сожалению, соленых огурцов в данных РОССТАТА найти не удалось и пришлось использовать категорию *Овощи натуральные консервированные, маринованные*, которые являются более общей группой. Альтернативной опцией могли стать свежие огурцы, но являясь сезонным товаром, такой продукт хуже отражает реальное положение дел. 
+
+Теперь можно сделать визуализацию рецептов чтобы составить впечатление из чего сделаны салаты. Для того чтобы такая визуализация выгладила тематически и празднично я буду использовать пакет `ggpattern`, о котором долго рассказывать, но очень легко понять идею работы, если посмотреть результат:
+
+```{r}
+# Салатные текстуры в виде простых картинок
+salad_patterns <- c("olivie.jpeg", "herring.jpeg")
+
+# Преобразование рецептов в табличку
+salad_recipes <- full_join(enframe(fur_herring_rec, value = "Шуба", name = "Ингредиент"), 
+                           enframe(olivier_rec, value = "Оливье", name = "Ингредиент"), 
+                           by = "Ингредиент") %>%  
+  pivot_longer(cols = 2:3, names_to = "Салат", values_to = "Состав") 
+
+# Непосредственно график
+ggplot(salad_recipes, aes(x = Ингредиент, y = Состав)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_col_pattern(aes(pattern_filename = Салат),
+                   pattern         = 'image',
+                   pattern_type    = 'tile',
+                   colour          = 'black',
+                   pattern_filter  = 'box',
+                   pattern_scale   = .5,
+                   position = "dodge") + 
+  scale_pattern_filename_discrete(choices = salad_patterns) + 
+  labs(title = "Пропорция ингридиентов салатов", y = "Состав, кг")
+```
+Все хорошо за исключением подписей, которые предательски заползают друг на друга, делая их не читаемыми. Существует несколько способов борьбы с таким нежелательным эффектом. 
+
+### Перевернуть координаты
+
+В таких ситуация первым, что я рекомендую делать -- это поменять оси `x` и `y` местами с помощью функции `coord_flip()`:
+
+```{r}
+ggplot(salad_recipes, aes(x = Ингредиент, y = Состав)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_col_pattern(aes(pattern_filename = Салат),
+                   pattern         = 'image',
+                   pattern_type    = 'tile',
+                   colour          = 'black',
+                   pattern_filter  = 'box',
+                   pattern_scale   = .5,
+                   position = "dodge") + 
+  scale_pattern_filename_discrete(choices = salad_patterns) + 
+  labs(title = "Пропорция ингридиентов салатов", y = "Состав, кг") + 
+  coord_flip() # Магия тут
+```
+Выглядит значительно лучше: во всяком случае теперь график читаемый. 
+
+### Добавить уровни
+
+Второй вариант -- разбить подписи на уровни (ярусы) с помощью функции `guide_axis()`:
+
+```{r}
+ggplot(salad_recipes, aes(x = Ингредиент, y = Состав)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_col_pattern(aes(pattern_filename = Салат),
+                   pattern         = 'image',
+                   pattern_type    = 'tile',
+                   colour          = 'black',
+                   pattern_filter  = 'box',
+                   pattern_scale   = .5,
+                   position = "dodge") + 
+  scale_pattern_filename_discrete(choices = salad_patterns) + 
+  labs(title = "Пропорция ингридиентов салатов", y = "Состав, кг") + 
+  guides(x = guide_axis(n.dodge = 2)) # Магия тут
+```
+График также стал более читабельным по сравнению с исходным вариантом, хотя из-за категории *Овощи натуральные консервированные, маринованные* выглядит не вполне симпатично.
+
+### Повернуть подпись
+
+Другим очень популярным, но не совсем удачным, на мой взгляд, вариантом -- является поворот подписей на 45&#176; или 90&#176;:
+
+```{r}
+ggplot(salad_recipes, aes(x = Ингредиент, y = Состав)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_col_pattern(aes(pattern_filename = Салат),
+                   pattern         = 'image',
+                   pattern_type    = 'tile',
+                   colour          = 'black',
+                   pattern_filter  = 'box',
+                   pattern_scale   = .5,
+                   position = "dodge") + 
+  scale_pattern_filename_discrete(choices = salad_patterns) + 
+  labs(title = "Пропорция ингридиентов салатов", y = "Состав, кг") + 
+  theme(axis.text.x = element_text(angle = 45)) # Магия тут
+```
+
+В данном случае текст наползает на график и, кроме того, заставляя читателя поворачивать голову на угол поворота надписи, что очевидно снижает  читаемость графика 🙃
+
+### Автоматический перенос
+
+Данный вариант не связан с возможностями `ggplot2`, но задействует функцию `stringr::str_wrap()`, которая получая на вход строку и желаемую длину переноса, делает этот самый перенос:
+
+```{r}
+ggplot(salad_recipes, aes(x = str_wrap(Ингредиент, 10), y = Состав)) + # Магия тут
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_col_pattern(aes(pattern_filename = Салат),
+                   pattern         = 'image',
+                   pattern_type    = 'tile',
+                   colour          = 'black',
+                   pattern_filter  = 'box',
+                   pattern_scale   = .5,
+                   position = "dodge") + 
+  scale_pattern_filename_discrete(choices = salad_patterns) + 
+  labs(title = "Пропорция ингридиентов салатов", y = "Состав, кг",  x = "Ингредиент")
+```
+Весьма неплохо с учетом того, что не пришлось делать переносы руками в каждом отдельном случае, но всего лишь навсего была добавлена простая функция. 
+
+Очевидно, что идеальный результат может быть получен комбинированием вышеописанных вариантов, поэтому рекомендую с ними поиграть самостоятельно и попробовать найти свой наилучший рецепт. 
+
+## Подготовка данных 💾
+
+После некоторой разминки можно переходить непосредственно к статистическим данным. В [прошлый раз](/post/ggplot_stack/#цены-на-жилье-) я рассказывал о пакете `fedstatAPIr`, который позволяет загружать данные с сайта РОССТАТА. Воспользовавшись этим удобным инструментом еще раз, я получил данные по ценам на различные виды товаров:
+
+```{r}
+prices_origin <- fst::read_fst("data/price.fst")
+
+slice_sample(prices_origin, n = 30) %>% # 30 случайных наблюдений
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 5),
+            caption = "Цены на товары")
+```
+
+Таким же образом, можно получить индекс цен, который используется для определения уровня инфляции (он же CPI):
+
+```{r}
+CPI_origin <- fst::read_fst("data/CPI.fst")
+
+slice_sample(CPI_origin, n = 30) %>% # 30 случайных наблюдений
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 5),
+            caption = "Цены на товары")
+```
+
+Естественно, сведения, предоставленные РОССТАТОМ, не могут быть использованы в исходном виде и необходимо сделать некоторые преобразования чтобы стало возможным построение графиков. 
+
+Непосредственный расчет структуры себестоимости салатов я буду делать с помощью матричных операций. Во-первых это очень удобно и не требует писать тупого кода. Во-вторых матричные вычисления гораздо более быстрые в сравнении со стандартными функциями умножения и сложения. В-третьих не пропадать же добру: я уже подготовил рецепты в виде именованы векторов, которые чрезвычайно удобно преобразовать в матрицу и быстренько сделать расчеты. 
+
+Сейчас и далее в качестве примера я буду выводить табличку для Шубы т.к. для обоих салатов структура одинаковая:
+
+```{r}
+# Функция преобразования формата дат РОССТАТА в общепринятый формат
+month2date <- function(month, year, last_day = TRUE){
+  
+  date <- stringi::stri_c("01", month, year, sep = " ") |> 
+    lubridate::parse_date_time(orders = c("dbY", "dBY"), locale = "ru_RU.UTF-8", train  = FALSE) 
+  
+  if_else(rep(last_day, length(date)), 
+          stringi::stri_c(year, lubridate::month(date), lubridate::days_in_month(date), sep = "-") |> lubridate::as_date(),
+          date |> lubridate::as_date()) 
+}
+
+# Необходимые преобразования для цен
+prices <- as_tibble(prices_origin) %>% 
+  select(s_grtov_title, ObsValue, PERIOD, Time) %>% 
+  filter(s_grtov_title %in% c(names(fur_herring_rec), names(olivier_rec))) %>% 
+  mutate(ObsValue = str_replace(ObsValue, ",", ".") %>%  as.numeric(), 
+         date = month2date(PERIOD, Time)) %>% 
+  pivot_wider(names_from = s_grtov_title, values_from = ObsValue) %>% 
+  arrange(date)
+
+# Необходимые преобразования для индекса инфляции
+CPI <- mutate(CPI_origin, value = str_replace(ObsValue, ",", ".") %>%  as.numeric(),
+              date = month2date(PERIOD, Time),
+              value = round(value/100 - 1, 2)) %>% 
+  select(date, value, s_grtov_title) %>% 
+  drop_na() %>% 
+  pivot_wider(id_cols = date, names_from = s_grtov_title, values_from = value) %>% 
+  rename("CPI" = 2, "food_CPI" = 3)
+
+# Табличка с годовыми значениями для Оливье, полученная матричным умножением
+olivier_total <- (as.matrix(prices[names(olivier_rec)]) %*% as.matrix(olivier_rec)) %>% 
+  as_tibble() %>% 
+  set_names("total") %>% 
+  bind_cols(prices[,3]) %>% 
+  mutate(change = round(total/lag(total, 12) - 1, 2)) %>% 
+  left_join(CPI, by = "date") %>% 
+  filter(date > as.Date("2013-11-01"))
+
+# Табличка с годовыми значениями для Шубы, полученная матричным умножением
+fur_herring_total <- (as.matrix(prices[names(fur_herring_rec)]) %*% as.matrix(fur_herring_rec)) %>% 
+  as_tibble() %>% 
+  set_names("total") %>% 
+  bind_cols(prices[,3]) %>% 
+  mutate(change = round(total/lag(total, 12) - 1, 2)) %>% 
+  left_join(CPI, by = "date") %>% 
+  filter(date > as.Date("2013-11-01"))
+
+slice_sample(fur_herring_total, n = 30) %>% # 30 случайных наблюдений
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 5),
+            caption = "Затраты на шубу")
+```
+
+И далее после некоторых манипуляций с матрицами можно также легко посчитать структуру затрат на приготовление салатов:
+
+```{r}
+# Матрица с рецептами Оливье (копирование вектора на длину матрицы цен)
+olivier_rec_mtrx <- matrix(olivier_rec, ncol = length(olivier_rec), nrow = nrow(prices), byrow = TRUE)
+
+# Умножение матрицы цен на матрицу рецепта Оливье
+olivier_cost <- (as.matrix(prices[names(olivier_rec)]) * olivier_rec_mtrx) %>% 
+  as_tibble() %>% 
+  bind_cols(prices[, "date"])  %>% 
+  drop_na() %>% 
+  pivot_longer(cols = -date)
+
+# Матрица с рецептами Шубы (копирование вектора на длину матрицы цен)
+fur_herring_rec_mtrx <- matrix(fur_herring_rec, ncol = length(fur_herring_rec), nrow = nrow(prices), byrow = TRUE)
+
+# Умножение матрицы цен на матрицу рецепта Шубы
+fur_herring_cost <- (as.matrix(prices[names(fur_herring_rec)]) * fur_herring_rec_mtrx) %>% 
+  as_tibble() %>% 
+  bind_cols(prices[, "date"])  %>% 
+  drop_na() %>% 
+  pivot_longer(cols = -date)
+
+slice_sample(fur_herring_cost, n = 30) %>% # 30 случайных наблюдений
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 5),
+            caption = "Структура затрат на шубу")
+```
+
+## Графики салатов 🥗
+
+Теперь можно собрать все вместе и визуализировать структуру и динамику стоимости Оливье. В силу того, что самым свежим месяцем наблюдения -- является ноябрь 2022 года, а данные по докторской колбасе доступны с начала 2014 года, можно сказать, что временные рамки графика определились сами собой. 
+
+Напомню, что пакет `patchwork` позволяет строить композиции из нескольких графиков. Верхним графиком в композиции будет выведена структура затрат, нормированная на 100%, где также выводится процентная динамика индексов инфляции в т.ч. индекса салата. Нижним графиком будут выведен слоеный "пирог" структуры затрат на приготовление салата в абсолютных ценах:
+
+```{r, fig.height=10}
+# В качестве отметки годовых значений используется ноябрь
+olivier_nov <- filter(olivier_total, lubridate::month(date) == 11 & date > as.Date("2014-01-01")) 
+
+# График структуры затрат
+p1 <- olivier_cost %>% 
+  ggplot(aes(date, value)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_area(aes(fill = str_wrap(name, 30)), alpha = .5, position = "fill") + 
+  geom_line(data = olivier_total, aes(y = CPI, linetype = "Широкий индекс"), col = "white") + 
+  geom_line(data = olivier_total, aes(y = food_CPI, linetype = "Продуктовый индекс"), col = "white") + 
+  geom_line(data = olivier_total, aes(y = change, linetype = "Индекс Оливье"), col = "white") + 
+  scale_linetype_manual(values = c("Широкий индекс" = 1, "Продуктовый индекс" = 3, "Индекс Оливье" = 5)) +
+  scale_y_continuous(labels = scales::label_percent()) + 
+  coord_cartesian(expand = TRUE, xlim = c(as.Date("2014-11-01"), as.Date("2023-01-01"))) + 
+  labs(col = "", fill = "", y = "Процент", linetype = "", x = "") + 
+  guides(fill = guide_legend(direction = "vertical"), 
+         linetype = guide_legend(direction = "vertical"), 
+         col = guide_legend(direction = "vertical")) + 
+  annotate(x = as.Date("2018-01-01"), y = .6, geom = "label", size = 3, color = "white", alpha = .5,
+           label = "'Индекс Оливье за 8 лет: '*sqrt(frac(289, 168), 8) - 1 == 7.02*'%'", parse = TRUE) + 
+  annotate(x = as.Date("2018-01-01"), y = .4, geom = "label", size = 3, color = "white", alpha = .5,
+           label = paste0("Широкий индекс за 8 лет: ", round(mean(olivier_nov$CPI)*100, 2), "%")) + 
+  annotate(x = as.Date("2018-01-01"), y = .3, geom = "label", size = 3, color = "white", alpha = .5,
+           label = paste0("Продуктовый индекс за 8 лет: ", round(mean(olivier_nov$food_CPI)*100, 2), "%"))
+
+# Абсолютная динамика затрат 
+p2 <- olivier_cost %>% 
+  ggplot(aes(date, value)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_area(aes(fill = str_wrap(name, 30)), alpha = .5) + 
+  geom_point(data = olivier_nov, 
+             aes(y = total), alpha = .1, size = 10, color = "white") +
+  geom_point(data = olivier_nov, 
+             aes(y = total, color = if_else(change < 0, "Падение", "Рост")), alpha = .9, size = 2) +
+  geom_label(data = olivier_nov, 
+             aes(y = total, label = str_c(round(total), "₽"), 
+                 color = if_else(change < 0, "Падение", "Рост")), alpha = .7, nudge_y = 10) + 
+  scale_color_manual(values = c("Падение" = "seagreen", "Рост" = "firebrick")) +
+  scale_y_continuous(labels = scales::label_comma(prefix = "₽")) +
+  coord_cartesian(expand = TRUE, xlim = c(as.Date("2014-11-01"), as.Date("2023-01-01"))) + 
+  labs(col = "", fill = "", y = "Стоимость", x = "") + 
+  guides(fill = guide_legend(direction = "vertical"), 
+         linetype = guide_legend(direction = "vertical"), 
+         col = guide_legend(direction = "vertical"))
+
+p1/p2 + plot_layout(guides = 'collect') + plot_annotation("Индекс Оливье") & theme(legend.position = "bottom") 
+```
+
+В самом центре я решил вывести информацию о индексах: широкого индекса, который собственно и используют для определения инфляции, продовольственного(продуктового) индекса, который, очевидно, связан с продовольственной инфляцией и собственноручно рассчитанный индекс Оливье. Кроме того, мне захотелось вывести рассчитанный индекс Оливье вместе с формулой расчета чтобы ни у кого не возникло сомнений как такой индекс был получен. Для того чтобы вывод формулы стал возможным в функции `annotate()` я **использовал трюк** с параметром `parse = TRUE`, который активирует интерпретацию значения в параметре `label` как объект `plotmath`. 
+
+График для Шубы абсолютно в такой же структуре:
+
+```{r, fig.height=10}
+# В качестве отметки годовых значений используется ноябрь
+fur_herring_nov <- filter(fur_herring_total, lubridate::month(date) == 11 & date > as.Date("2014-01-01"))
+
+# График структуры затрат
+p3 <- fur_herring_cost %>% 
+  ggplot(aes(date, value)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_area(aes(fill = str_wrap(name, 30)), alpha = .5, position = "fill") + 
+  geom_line(data = fur_herring_total, aes(y = CPI, linetype = "Широкий индекс"), col = "white") + 
+  geom_line(data = fur_herring_total, aes(y = food_CPI, linetype = "Продуктовый индекс"), col = "white") + 
+  geom_line(data = fur_herring_total, aes(y = change, linetype = "Индекс Шубы"), col = "white") + 
+  scale_linetype_manual(values = c("Широкий индекс" = 1, "Продуктовый индекс" = 3, "Индекс Шубы" = 5)) +
+  scale_y_continuous(labels = scales::label_percent()) + 
+  coord_cartesian(expand = TRUE, xlim = c(as.Date("2014-11-01"), as.Date("2023-01-01"))) + 
+  labs(col = "", fill = "", y = "Процент", linetype = "", x = "") + 
+  guides(fill = guide_legend(direction = "vertical"), 
+         linetype = guide_legend(direction = "vertical"), 
+         col = guide_legend(direction = "vertical")) + 
+  annotate(x = as.Date("2018-01-01"), y = .6, geom = "label", size = 3, color = "white", alpha = .5,
+           label = "'Индекс Шубы за 8 лет: '*sqrt(frac(128, 68), 8) - 1 == 8.23*'%'", parse = TRUE) + 
+  annotate(x = as.Date("2018-01-01"), y = .4, geom = "label", size = 3, color = "white", alpha = .5,
+           label = paste0("Широкий индекс за 8 лет: ", round(mean(fur_herring_nov$CPI)*100, 2), "%")) + 
+  annotate(x = as.Date("2018-01-01"), y = .3, geom = "label", size = 3, color = "white", alpha = .5,
+           label = paste0("Продуктовый индекс за 8 лет: ", round(mean(fur_herring_nov$food_CPI)*100, 2), "%"))
+
+# Абсолютная динамика затрат
+p4 <- fur_herring_cost %>% 
+  ggplot(aes(date, value)) + 
+  annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 15, 
+             label = "InvestCookies.ru", color = "#1D1E20") + 
+  geom_area(aes(fill = str_wrap(name, 30)), alpha = .5) + 
+  geom_point(data = fur_herring_nov, 
+             aes(y = total), alpha = .1, size = 10, color = "white") +
+  geom_point(data = fur_herring_nov, 
+             aes(y = total, color = if_else(change < 0, "Падение", "Рост")), alpha = .9, size = 2) +
+  geom_label(data = fur_herring_nov, 
+             aes(y = total, label = str_c(round(total), "₽"), 
+                 color = if_else(change < 0, "Падение", "Рост")), alpha = .7, nudge_y = 6) + 
+  scale_color_manual(values = c("Падение" = "seagreen", "Рост" = "firebrick")) +
+  scale_y_continuous(labels = scales::label_comma(prefix = "₽")) +
+  coord_cartesian(expand = TRUE, xlim = c(as.Date("2014-11-01"), as.Date("2023-01-01"))) + 
+  labs(col = "", fill = "", y = "Стоимость", x = "") + 
+  guides(fill = guide_legend(direction = "vertical"), 
+         linetype = guide_legend(direction = "vertical"), 
+         col = guide_legend(direction = "vertical"))
+
+p3/p4 + plot_layout(guides = 'collect') + plot_annotation("Индекс Шубы") & theme(legend.position = "bottom")
+```
+
+## Шпаргалка по подписям-формулам 👨🏻‍🏫
+
+Формулы можно выводить в различные элементы `ggplot2`, но конструкции, используемые для этого всегда разные, поэтому я решил свести эти знания в небольшую шпаргалку чтобы она была всегда под рукой:
+
+| Место             | Функции                             | Конструкция               |
+| ----------------- | ----------------------------------- | ------------------------- |
+| Текстовые подписи | `geom_text()`, `annotate()`         | `parse = TRUE`            |
+| Подписи осей      | `lab`, `xlab`, `ylab`               | `expression(R^2)`         |
+| Фасеты            | `facet_grid`, `faсet_wrap`          | `labeller = label_parsed` |
+| Легенда           | `scale_x_color`, `scale_x_fill`, ...| `bquote(R^2 == .(value))` |
+
+Далее график, наглядно демонстрирующий каким образом работают подписи-формулы в различных элементах:
+
+```{r}
+data <- data.frame(x=c(1, 1), y=c(2, 2), f = factor(c("italic(R^2==0.1)","italic(R^2==0.2)")))
+
+value1 <- 0.7
+value2 <- 0.9
+my_labs <- list(bquote(R^2==.(value1)), bquote(R^2==.(value2)))
+
+ggplot(data, aes(x, y, col = f)) +
+  geom_point() +
+  geom_text(aes(x, y, label=f), parse = TRUE, nudge_y = 1) + # Формула в подписи
+  facet_grid(~f, labeller = label_parsed) + # Формула в фасете
+  scale_colour_manual(values=1:2, labels = my_labs) + # Формула в легенде
+  xlab(expression(italic(R^2==0.5))) + # Формула в подписи оси 
+  scale_x_continuous(labels = ~paste0(., "\u2211"), limits = c(0, 2)) + # Использование UNICODE символов в подписях оси
+  labs(title = "\u2211\u2211\u2211") # Использование UNICODE символов в заголовке
+```
+
+И некоторые советы по работе с подписями и формулами:
+
+- Справку для формул можно вывести с помощью команды `?plotmath`
+- Рендеринг формул и специальных символов может отличаться в зависимости от графического движка, который используется см. настройки в RStudio: `Options -> Graphics -> Backend`. Для рендеринга данной заметки использовался движок `AGG`
+- Возможно использовать одновременно обычный текстовый символ и объект `plotmath`, для чего необходимо использовать знак `*` при стыковке фрагментов и одноразовые кавычки внутри двойных кавычек для фрагментов обычного текста
+- Специальные математические знаки UNICODE в большинстве случаев должны работать 
+- В качестве альтернативы для формирования подписей сложного форматирования в т.ч. формул существует пакет `ggtext` 
+
+## Салатное заключение 🍪
+
+Теперь можно вернутся к салатам и сделать обывательские заключения на базе построенных графиков:
+
+- Овощные ингредиенты вносят ощутимую сезонную составляющую в себестоимость салатов т.е. стоимость приготовления осенью и весной может ощутимо отличаться 
+- Индексы салатов накопленным эффектом: Оливье за 8 лет в среднем дорожал на **7.02%**, а Шуба за 8 лет в среднем дорожала на **8.23%**, что соответствует продовольственной инфляции в среднем за 8 лет -- **8.11%**. Другими словами Шуба в большей степени соответствует инфляции чем Оливье 
+- Динамика индекса Шубы более нервная тогда как индекс Оливье ведет себя более спокойно и в целом повторяет траекторию индекса продовольственной инфляции
+- Структура затрат на салат Оливье не сильно изменилась за 8 прошедших лет тогда как для Шубы сельдь приобрела большую значимость в затратах в последнее время 
+- Наверное главный вывод, который можно сделать -- это **отсутствие выявленных значимых расхождений между официальным индексом продовольственной инфляции и индексами салатов**. Другими словами, официальная оценка инфляции -- выглядит адекватно и может быть использована в качестве ориентира для инвестиционных решений 
+
+Простой способ узнать о новых публикациях – подписаться на Telegram-канал:
+<div class="telegram-icon" align="left">
+<a href="https://t.me/investcookies" target="_blank" rel="noopener noreferrer me">
+🍪🍪🪙 InvestCookies 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.509 1.793.997 3.592 1.48 5.388.16.36.506.494.864.498l-.002.018s.281.028.555-.038a2.1 2.1 0 0 0 .933-.517c.345-.324 1.28-1.244 1.811-1.764l3.999 2.952.032.018s.442.311 1.09.355c.324.022.75-.04 1.116-.308.37-.27.613-.702.728-1.196.342-1.492 2.61-12.285 2.997-14.072l-.01.042c.27-1.006.17-1.928-.455-2.474a1.654 1.654 0 0 0-1.034-.407z" />
+</svg>
+</a>
+</div>
