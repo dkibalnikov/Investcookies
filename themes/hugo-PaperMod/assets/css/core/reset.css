@@ -76,7 +76,7 @@ figure,
 ul {
     margin: 0;
 }
-
+/* Starting my upgrades */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -89,10 +89,17 @@ th {
   background-color: #1D1E20;
   color: white;
 }
+
 tr:hover {
   background-color: #f2f2f2;
   color: #1D1E20;
 } 
+
+.caption {
+    font-style: italic;
+    font-size: 14px;
+}
+/* Ending my upgrades */
 
 button,
 input,
