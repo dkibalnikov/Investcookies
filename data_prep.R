@@ -26,18 +26,7 @@ ru_population <- mutate(ru_population0, rgn = str_replace(s_OKATO_code, "0$", "0
 months <- c("январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь")
 regs <- c("400000000001", "410000000001", "450000000001","460000000001", "030000000001", "643")
 
-# Активируем тему для блога
-thematic::thematic_rmd(bg = "#1D1E20", accent = "cyan", fg = "grey90", 
-                       font = thematic::font_spec("Roboto"), sequential = firatheme::firaPalette(100), 
-                       qualitative = palette.colors(palette = "Tableau")) 
 
-# Сохраняем палитру в отдельную переменную
-my_pal <- palette.colors(palette = "Tableau") %>% unname() 
-
-my_ggplot <- function(dt, ...){
-  ggplot(dt, ...) +
-    ggpp::annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 10, label = "InvestCookies.ru", color = "#1D1E20")
-}
 
 ru_injuries0 <- fst::read_fst("content/post/traffic_safety/data/ru_injuries0.fst")
 
@@ -177,10 +166,10 @@ climate <- climate_tbl %>%
   mutate(city = recode(city, !!!fix_cities)) %>% 
   left_join(OKATO_code, by = "city") %>%
   filter(!is.na(city)) %>% 
-  mutate(rgn = str_replace(rgn, "0$", "01")) %>% 
-  group_by(rgn) %>% 
-  summarise(across(-c("city", "month"), mean), .groups = "drop") %>% 
-  drop_na()
+  mutate(rgn = str_replace(rgn, "0$", "01"), month = as.double(month)) #%>% 
+  # group_by(rgn) %>% 
+  # summarise(across(-c("city", "month"), mean), .groups = "drop") %>% 
+  # drop_na()
 
 
 # All together ------------------------------------------------------------
@@ -268,4 +257,49 @@ p2 <- my_ggplot(traffik_all, aes(reorder(rgn_name, injury_rate), injury_rate, fi
   coord_flip()
 
 p1+p2
+
+fix_rgn <- c("400000000001" = "410000000001",
+             "450000000001" = "460000000001")
+
+fix_rgn_name <- c("г. Санкт-Петербург" = "СПб+ЛО", "Ленинградская область" = "СПб+ЛО",
+              "Московская область" = "Москва + МО", "г. Москва" = "Москва + МО" )
+
+ru_stats <- deaths %>% 
+  left_join(injuries, by = c("year", "month", "rgn", "rgn_name")) %>% 
+  left_join(ru_population, by = c("year", "rgn")) %>% 
+  mutate(rgn = recode(rgn, !!!fix_rgn), rgn_name = recode(rgn_name, !!!fix_rgn_name)) %>% 
+  group_by(rgn, rgn_name, month) %>% 
+  summarise(across(c(death, injury), ~sum(.)*1e6/mean(population), .names = "{.col}_rate"), .groups = "drop") %>% 
+  left_join(climate, by = c("month", "rgn")) %>% 
+  drop_na()
+
+select(ru_stats, where(is.numeric)) %>% 
+  cor() %>% 
+  emphatic::hl_mat(firatheme::scale_color_fira(continuous = TRUE))
+
+
+ggplot(ru_stats, aes(log(death_rate), night_temp, col = month)) + 
+  geom_point(alpha = .5) + 
+  geom_smooth(method = "lm") + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE)
+
+ggplot(ru_stats, aes(death_rate, day_temp, col = month)) + 
+  geom_point() + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE)
+
+ggplot(ru_stats, aes(log(death_rate), mean_rain, col = month)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE)
+
+ggplot(ru_stats, aes(log(death_rate), mean_rain_day, col = month)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE)
+
+ru_stats %>% 
+  filter(death_rate > 0) %>% 
+  mutate(death_rate_lg = log(death_rate)) %>% 
+  lm(data = ., death_rate_lg ~ night_temp + mean_rain:month + mean_rain_day) %>% 
+  summary()
 
