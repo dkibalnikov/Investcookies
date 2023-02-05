@@ -101,7 +101,7 @@ injuries_fltrd <- filter(injuries, rgn %in% regs)
 
 # Figure 1: Количество ДТП с пострадавшими на 1 млн. населения 
 my_ggplot(injuries_fltrd, aes(month, injury_rate)) + 
-  geom_line(aes(color = year, group = year), size = 1, alpha = .5) + 
+  geom_line(aes(color = year, group = year), size = 1, alpha = .1) + 
   scale_x_continuous(labels = months, breaks = 1:12) +
   facet_wrap(~rgn_name, scales = "free", ncol = 1) + 
   ggrepel::geom_label_repel(data = filter(injuries_fltrd, month == 11), max.overlaps = 10, alpha = .7,
@@ -148,7 +148,7 @@ deaths_fltrd <- filter(deaths, rgn %in% regs)
 
 # Figure 2: Число лиц, погибших в ДТП
 my_ggplot(deaths_fltrd, aes(month, death_rate)) + 
-  geom_line(aes(color = year, group = year), size = 1, alpha = .5) + 
+  geom_line(aes(color = year, group = year), size = 1, alpha = .1) + 
   scale_x_continuous(labels = months, breaks = 1:12) +
   ggrepel::geom_label_repel(data = filter(deaths_fltrd, month == 11), max.overlaps = 10, alpha = .7,
                             aes(x = 11, group = year, label = year, color = year)) + 
