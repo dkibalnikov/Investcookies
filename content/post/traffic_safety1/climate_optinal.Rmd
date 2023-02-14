@@ -1,0 +1,150 @@
+---
+title: "climate_optinal"
+author: "Кибальников Д.С."
+date: "2023-02-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Единственным отличием в данном случае было то, что вместо сопоставления абсолютной величины смертности я производил сопоставление показателя смертности после взятия логарифма. В данном случае смысл сопоставления изменится, а именно вместо абсолютной величины смертности будет рассматриваться относительная или, проще говоря, процентная величина.  
+
+<details>
+<summary>Математическое пояснение</summary>  
+
+Модель регрессии с логарифмом имеет следующий вид: 
+$$
+log(y) = \alpha x+ \beta + \epsilon
+$$
+Интерпретацию коэффициента α можно получить через оценку эластичности или технически взятием производной и домноженным на 100 для перехода к процентам:
+
+$$
+100 * \frac{dlog(y)}{dx} = 100 * \frac{dy/y}{dx} = 100 *\alpha
+$$
+Т.е. данное выражение показывает, что при изменении независимого показателя [x] на 1 зависимая переменная [y] изменится на 1% 
+
+</details>
+
+```{r, fig.height=14}
+## Подготовка сведений в месячной детализации для работы с климатическими данными
+ru_stats_month <- deaths %>% 
+  left_join(injuries, by = c("year", "month", "rgn", "rgn_name")) %>% 
+  left_join(ru_population, by = c("year", "rgn")) %>% 
+  mutate(rgn = recode(rgn, !!!fix_rgn_code), rgn_name = recode(rgn_name, !!!fix_rgn_name)) %>% 
+  group_by(rgn, rgn_name, month) %>% 
+  summarise(across(c(death, injury), ~sum(.)*1e6/mean(population), .names = "{.col}_rate"), .groups = "drop") %>% 
+  left_join(climate, by = c("month", "rgn")) %>% 
+  drop_na()
+
+
+ru_stats_month %>% 
+  pivot_longer(cols = matches("temp|rain")) %>% 
+  my_ggplot(aes(value, log(death_rate), col = month)) + 
+  geom_point(aes(group = month), alpha = .5) + 
+  geom_smooth(method = "lm", formula = y ~ x) + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE, size = 2.5) + 
+  facet_wrap(name~., scales = "free", ncol = 1, 
+             labeller = labeller(name = c("night_temp" = "Средняя месячная\nночная температура, °С", "day_temp" = "Средняя месячная\nдневная температура, °С", 
+                                          "mean_rain" = "Месячное\nколичество осадков, мм", "mean_rain_day" = "Количество дней\nс осадками в месяце, дни"))) + 
+  scale_y_continuous(labels = scales::label_comma(suffix = "%")) +
+  scale_color_steps2(labels = months, breaks = 1:12, low = "cyan", mid = "orange", high = "cyan", midpoint = 7) + 
+  expand_limits(y = c(2, 7)) +
+  labs(title = "Зависимость смертности от климатических условий", col = "Месяц", x = "", y = "Относительное изменение смертности",
+       caption= "Источники: РОССТАТ, ГИДРОМЕДЦЕНТР") 
+```
+
+Получившиеся облака рассеяния имеют "вытянутый" или "направленный" вид, что говорит о наличие взаимосвязи между показателями климата и показателем смертности. Количественную оценку такой взаимосвязи можно получить аналогичным образом как и в предыдущем разделе -- путем формирования матрицы корреляции: 
+
+```{r}
+select(ru_stats_month, where(is.numeric), 
+       `Месяц  ` = "month", `Смертн.` = "death_rate", `Травм. ` = "injury_rate", 
+       `℃ ночь ` = "night_temp", `℃ день ` = "day_temp", `Осадки ` = "mean_rain", 
+       `Пасмур.` = "mean_rain_day") %>% 
+  cor() %>% 
+  apply(2,\(x)round(x, 2)) %>% 
+  emphatic::hl_mat(firatheme::scale_color_fira(continuous = TRUE)) %>% 
+  emphatic::as_html(style = "color:White;font-size:12px") 
+```
+
+Как говорилось в прошлой заметке для смертности присутствует сезонность и поэтому корреляция номера месяца со смертностью существенная. Очевидная связь дневной и ночной температур позволяет исключить из анализа любую из них. Пасмурность и количество осадков также сильно связаны и можно оставить для рассмотрения связь смертности с количеством осадков, которая имеет ощутимое значение **0.38**. Связь ночной температурой и смертностью составляет **0.39** при этом знак положительный, что означает при росте температуры рост смертности на дорогах.
+
+Если учесть температуру и осадки вместе -- получится связь климата и смертности весьма ощутимая, но это не значит, что можно складывать корреляцию по температуре и количеству осадков чтобы получить сумму **~0.8**. Температура и осадки имеют корреляцию между собой на ощутимые **0.62** и поэтому совокупное влияние размывается. 
+
+Кроме того, облака рассеяния ложатся горизонтально, что говорит о том, что сила переноса изменения температуры и количества осадков на смертность -- не очень высокая. Действительно, изменение температуры на 10℃ ведет изменение смертности приблизительно на четверть процента т.е. зависимость хоть и имеется, но она не сильно влияет в конечном итоге на смертность. 
+
+<details>
+<summary>Статистический тест</summary>  
+
+Тест на значимость связи смертности с температурой
+
+```{r}
+cor.test(ru_stats_month$death_rate, ru_stats_month$night_temp, method = "spearman")
+```
+
+Тест на значимость связи смертности с количеством осадков 
+
+```{r}
+cor.test(ru_stats_month$death_rate, ru_stats_month$mean_rain, method = "spearman")
+```
+
+Оба теста отвергают нулевую гипотезу в пользу альтернативной, аргументируя в пользу того, что связь присутствует. 
+Простая модель линейной регрессии:
+
+```{r}
+ru_stats_month %>% 
+  filter(death_rate > 0) %>% 
+  mutate(death_rate_lg = log(death_rate)) %>% 
+  lm(data = ., death_rate_lg ~ month + night_temp + month:mean_rain) %>% 
+  summary()
+```
+Полученная модель предсказывает количество погибших в регионе в определенный месяц года. Такая простая модель с учетом сезонности способна предсказать почти **47%** вариативности, что достаточно существенно. Коэффициенты при модели имеют достаточно малое значение, но это нормально для оценки относительного значения т.е. 
+
+</details>
+
+```{r source code}
+## Подготовка сведений в месячной детализации для работы с климатическими данными
+ru_stats_month <- deaths %>% 
+  left_join(injuries, by = c("year", "month", "rgn", "rgn_name")) %>% 
+  left_join(ru_population, by = c("year", "rgn")) %>% 
+  mutate(rgn = recode(rgn, !!!fix_rgn_code), rgn_name = recode(rgn_name, !!!fix_rgn_name)) %>% 
+  group_by(rgn, rgn_name, month) %>% 
+  summarise(across(c(death, injury), ~sum(.)*1e6/mean(population), .names = "{.col}_rate"), .groups = "drop") %>% 
+  left_join(climate, by = c("month", "rgn")) %>% 
+  drop_na()
+
+## Диаграмма рассеяния для смертности и климатических показателей
+ru_stats_month %>% 
+  pivot_longer(cols = matches("temp|rain")) %>% 
+  my_ggplot(aes(value, log(death_rate), col = month)) + 
+  geom_point(aes(group = month), alpha = .5) + 
+  geom_smooth(method = "lm") + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE, size = 2.5) + 
+  facet_wrap(name~., scales = "free", ncol = 1, 
+             labeller = labeller(name = c("night_temp" = "Ночная\nтемпература", 
+                                          "day_temp" = "Дневная\nтемпература", 
+                                          "mean_rain" = "Количество\nосадков", 
+                                          "mean_rain_day" = "Количество дней\nс осадками"))) + 
+  scale_color_steps2(labels = months, breaks = 1:12, low = "cyan", mid = "orange", high = "cyan", midpoint = 7) + 
+  expand_limits(y = c(2, 7)) +
+  labs(title = "Зависимость смертности от климатических условий", col = "Месяц", x = "", y = "Относительное изменение смертности",
+       caption= "Источники: РОССТАТ, ГИДРОМЕДЦЕНТР") 
+
+## Матрица корреляции для климатических показателей
+select(ru_stats_month, where(is.numeric)) %>% 
+  cor(method = "spearman") %>%  # непараметрический тест на корреляцию
+  apply(2,\(x)round(x, 2)) %>% 
+  emphatic::hl_mat(firatheme::scale_color_fira(continuous = TRUE))
+
+
+# Тест на значимость связи смертности с температурой
+cor.test(ru_stats_month$death_rate, ru_stats_month$night_temp, method = "spearman")
+
+## Тест на значимость связи смертности с количеством осадков 
+cor.test(ru_stats_month$death_rate, ru_stats_month$mean_rain, method = "spearman")
+```
+
+
+
+
