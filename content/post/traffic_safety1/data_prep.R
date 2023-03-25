@@ -267,18 +267,32 @@ fix_rgn_name <- c("г. Санкт-Петербург" = "СПб+ЛО", "Лени
 ru_stats <- deaths %>% 
   left_join(injuries, by = c("year", "month", "rgn", "rgn_name")) %>% 
   left_join(ru_population, by = c("year", "rgn")) %>% 
-  mutate(rgn = recode(rgn, !!!fix_rgn), rgn_name = recode(rgn_name, !!!fix_rgn_name)) %>% 
+  mutate(rgn = recode(rgn, !!!fix_rgn_code), rgn_name = recode(rgn_name, !!!fix_rgn_name)) %>% 
   group_by(rgn, rgn_name, month) %>% 
   summarise(across(c(death, injury), ~sum(.)*1e6/mean(population), .names = "{.col}_rate"), .groups = "drop") %>% 
   left_join(climate, by = c("month", "rgn")) %>% 
-  drop_na()
+  drop_na() 
 
 select(ru_stats, where(is.numeric)) %>% 
   cor() %>% 
+  apply(2,\(x)round(x, 2)) %>% 
   emphatic::hl_mat(firatheme::scale_color_fira(continuous = TRUE))
 
 
-ggplot(ru_stats, aes(log(death_rate), night_temp, col = month)) + 
+ru_stats %>% 
+  pivot_longer(cols = matches("temp|rain")) %>% 
+  ggplot(aes(value, log(death_rate), col = month)) + 
+  geom_point(aes(group = month), alpha = .5) + 
+  #geom_smooth(method = "lm") + 
+  geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE) + 
+  facet_wrap(~name, scales = "free") + 
+  scale_color_steps2(labels = months, breaks = 1:12, low = "cyan", mid = "orange", high = "cyan", midpoint = 7) +
+  theme(legend.key.width = unit(4, "cm"), legend.position = "bottom")
+
+
+
+
+ggplot(ru_stats, aes(night_temp, log(death_rate), col = month)) + 
   geom_point(alpha = .5) + 
   geom_smooth(method = "lm") + 
   geom_text(aes(label = str_wrap(str_c(rgn_name, ": ", month), 15)), check_overlap = TRUE)
