@@ -1,0 +1,12 @@
+data.table
+zoo
+xts
+TTR
+quantmod
+jsonlite
+httr
+rusquant
+stringi
+ggplot2
+patchwork
+DT

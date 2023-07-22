@@ -1,0 +1,420 @@
+---
+title: "Полный трендец - бектестинг 🔙"
+author: "🍪🍪🪙"
+date: 2023-07-08
+categories: ["data science"]
+tags: ["analysis", "R", "stock market", "advanced"]
+math: true # when math activated -> don't use brackets:( and )
+ShowToc: true
+cover:
+    image: "bart3.png"
+    alt: "<Полный трендец>"
+    caption: "<text>"
+    relative: true # To use relative path for cover image, used in hugo Page-bundles
+---
+
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="{{< blogdown/postref >}}index_files/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/datatables-binding/datatables.js"></script>
+<script src="{{< blogdown/postref >}}index_files/jquery/jquery-3.6.0.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/css/dataTables.bootstrap4.extra.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/js/jquery.dataTables.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/js/dataTables.bootstrap4.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/js/dataTables.responsive.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/js/responsive.bootstrap4.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/crosstalk/js/crosstalk.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="{{< blogdown/postref >}}index_files/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/datatables-binding/datatables.js"></script>
+<script src="{{< blogdown/postref >}}index_files/jquery/jquery-3.6.0.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/css/dataTables.bootstrap4.extra.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/js/jquery.dataTables.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/dt-core-bootstrap4/js/dataTables.bootstrap4.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/js/dataTables.responsive.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/dt-ext-responsive-bootstrap4/js/responsive.bootstrap4.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/crosstalk/js/crosstalk.min.js"></script>
+
+## Бектестинг 🔙
+
+В предыдущей [заметке](/post/trendets/) я постарался ухватить идею модели MACD, которая достаточно часто используется в торговых стратегиях. Теперь настало время проверить эту технику на предмет способности приносить деньги. К слову сказать, стратегии на базе технического анализа имеют свои преимущества, например, не нужно много думать и переваривать кучу информации о финансовых отчетах, о действиях регуляторов, изучать всякую макростатистику. Добавим к этому возможность играть на повышение и понижение, что обеспечивает непрерывную работу капитала, а также возможность полностью автоматизировать процесс торговли и в итоге получается весьма привлекательная картинка.
+
+По консалтерской традиции после хорошего следует упомянуть чего-нибудь плохое и плохого тоже есть у меня. Торговля на технических сигналах подразумевает повышенные накладные расходами на транзакции купли/продажи актива. Если работать с короткими позициями (играть в шорт), то еще придется платить за непокрытую позицию. Думаю, в этот момент становится понятно почему брокеры так любят трейдеров, которые активно генерируют комиссию. На месте брокеров я бы финансировал написание книжек по трейдингу, субсидировал лидеров мнений или делал бесплатные семинары. Впрочем, они и так этим занимаются 🙄
+
+И вот все эти консалтинговые бла-бла-бла и бу-бу-бу на самом деле интересны лишь в преломлении конкретных цифр. Сказать просто – сделать уже тяжелее потому как в расчетах нужно учитывать следующее:
+
+- Некий вменяемый исторический период с ростом, падением, боковиками и черными лебедями
+- Комиссии за покупку актива и продажу
+- Затраты на непокрытую позицию для коротких сделок (шорт)
+- Дивидендные выплаты
+
+Теперь, если взять вот это все вышеперечисленное и применить к котировкам цен то случится тот самый бектестинг т.е. тестирование стратегии на исторических данных с полным восстановлением всех входящих и исходящих платежей для расчета итогового баланса. К сожалению, тестирование на исторических данных еще не гарантирует, что будущее будет похоже на прошлое. С другой стороны, проверка стратегии, очевидно, лучше чем игра в слепого котенка. Кроме того, дополнительную уверенность может придать тестирование сразу на большом количестве инструментов, скажем, для 50 или 100 компаний.
+
+## Подопытные 🐀
+
+В предыдущей [заметке](/post/trendets/) я уже упоминал, что стратегии на базе MACD, вероятно, будут хорошо работать для сырьевых компаний, цена акций которых следуют за сырьевыми циклами, если конечно такие сырьевые циклы существуют. Для того чтобы захватить подобные циклы нужно взять достаточно продолжительный исторический период. В данном случае данные брались с начала 2019 года т.е. к моменту написания заметки исторический период составляет ~4.5 года. Графики подопытных компаний ниже даны с июля 2022 года исключительно для лучшей читаемости.
+
+1.  `PLZL` – Полюс Золото – это крупный добытчик рыжего металла преимущественно с добывающими мощностями в РФ.
+    <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="720" />
+2.  `POLY` – Полиметалл – является компанией, добывающей золото и серебро с активами в РФ и Казахстане, в ближайшее время переезжает под юрисдикцию Казахстана из оффшора.
+    <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="720" />
+3.  `SBER` – Сбербанк, думаю, в представлении не нуждается.
+    <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="720" />
+4.  `GAZP` – Национальное достояние – Газпром попало в список, прежде всего, благодаря тому, что котировки акций этой компании испытали сильнейшие эйфорию и последующий стресс. Собственно интересно посмотреть как MACD справляется с вереницей черных лебедей и завершающим картину боковиком.
+    <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="720" />
+5.  `YNDX` – ИТ-гигант скорее для того чтобы добавить некоторого разнообразия.
+    <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="720" />
+
+Почти все бумаги из списка (за исключением Газпрома) подросли за прошедший год, но на фоне событий 2022 года речь идет скорее о некоторой компенсации потерь.
+
+Каждая диаграмма выше содержит несколько графиков: непосредственно динамику котировок, ниже объемы торговли и еще ниже индикаторы MACD, которые подробно разбирались в предыдущей [заметке](/post/trendets/). В качестве параметров модели выбрана классическая комбинация 12/26/9. Такие параметры в настоящее время не имеют какого-то особенного [сакрального смысла](/post/trendets/#macd-), но они по умолчанию используются в торговых терминалах, а значит большинство трейдеров, вероятно, использует именно такую комбинацию. Важно отметить, что MACD с любыми параметрами позволяет ловить изменения трендов, вопрос лишь в размере таких трендов. Если присмотреться к графику выше, то можно сделать вывод, что MACD с классическими параметрами дает сигналы где-то раз в месяц, а это вполне комфортный режим торговли для склонного к лени инвестора. Действительно, не очень хочется проводить сколько-нибудь значимое время перед экраном монитора, а получить сигнал раз в месяц и провести сделку – это выглядит приемлемо 🦥
+
+## Расчеты 🧮
+
+Как обычно я выкладываю все расчеты в виде воспроизводимых скриптов на языке R. Любой желающий чему-то научиться или просто сомневающийся может по шагам воспроизвести все, что я тут насчитал. Код сопровождается моими комментариями, поэтому разобраться будет не так уж сложно.
+
+Для расчетов необходимы сведения о комиссиях брокера и в данном случае я использовал сведения о тарифах [Тинкофф](https://www.tinkoff.ru/invest/tariffs/) как наиболее популярного брокера. В качестве базовых параметров использовались следующие значения:
+
+- Стоимость покупки/продажи акции **0.04%** за транзакцию, что соответствует тарифу Премиум
+- Стоимость непокрытой позиции (позиции в шорте) **0.05%** от размера непокрытой позиции в день
+
+В реальности для непокрытой позиции дана прогрессивная шкала, но для данного исследования я просто взял минимальную ставку для простоты. В любом случае, каждый желающий может относительно просто изменить эти параметры на свое усмотрение и получить картинку, соответствующую его тарифной сетке.
+
+Чтобы не подходить к бару за пивом несколько раз я решил сделать расчет сразу для всех вариантов стратегий, а именно:
+
+- `base` – это базовая стратегия *купил и держишь*, думаю, тут пояснять ничего не нужно
+- `buy` – данная стратегия подразумевает покупки и продажи по сигналу MACD, а именно при возникновении первых зеленых столбиков осуществляется покупка, при возникновении первых красных столбиков осуществляется продажа
+- `sell` – такая стратегия также подразумевает покупки и продажи по сигналу MACD, но уже при возникновении первых красных столбиков осуществляется продажа в шорт, а при возникновении первых зеленых столбиков позиция закрывается
+- `two_way` – последняя стратегия комбинирует стратегии `buy` и `sell` т.е. в момент появления красных столбиков осуществляется продажа актива и также продажа в шорт двумя отдельными транзакциями с соответствующими накладными расходами; в момент появления зеленых столбиков делаются еще две транзакции, обратные описанному
+
+Согласно основному принципу бектестинга возврат на актив считается за определенный период. В данном случае для загруженных данных выбран временной фрейм – 1 день и поэтому возврат рассчитывается также на 1 день.
+
+<details>
+<summary>
+Техническое про код на R
+</summary>
+
+Данные о котировках акций можно получить через пакет `quantmod` и его расширение `rusquant`, который в частности обеспечивает программный доступ к данным брокера Финам. Поддерживаются и другие провайдеры данных, но в данном случае подошел Финам. Именно эти данные я и буду использовать. По пути решения задач пришлось починить одну функцию `rusquant`, сделав комит в [github-репозиторий](https://github.com/arbuzovv/rusquant), и к моменту написания этой заметки все должно работать, как говориться, из коробки. К сожалению, с данными дивидендных выплат все оказалось несколько сложнее и ни один из соответствующих методов `rusquant` не заработал должным образом поэтому мне пришлось написать собственную функцию `get_divs()` для извлечения этой ценной информации, которая забирает данные с сайта [SMART-LAB](https://smart-lab.ru/)
+
+Для основных манипуляций пришлось использовать временные ряды в формате `xts`, которые необходимы для пакета `TTR` и который в свою очередь умеет рассчитывать MACD. Кроме того, `xts` в своей основе использует структуру матрицы, что делает вычисления достаточно быстрыми, а это весьма важно, если есть желание сделать расчет сразу по всему рынку инструментов. Негативной стороной использования этих объектов – является синтаксис, похожий на синтаксис Python, который выглядит весьма мерзко.
+
+В качестве визуализации бекстестинга принято использовать функцию `PerformanceAnalytics::charts.PerformanceSummary()`, но мне не хватало на графике маркеров выплаты дивидендов и также явного указания итоговых результатов за период. В связи с этим, пришлось написать свою функцию визуализации, которая осуществляет расчеты подобным образом, но визуализирует чуть больше полезной информации.
+
+</details>
+
+## Результаты 👆
+
+Первым в списке значится Полюсзолото:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="720" />
+`base` стратегия оказалась в итоге лидером с итоговым результатом в виде внушительной прибавки к капиталу в размере **134.6%**, но также эта стратегия показала сильнейшую просадку в моменте **65.8%**. На втором месте обосновалась стратегия `buy` с покупками исключительно по сигналам MACD. Итоговый результат такой стратегии составил **84.9%**, но что более интересно максимальная просадка оказалась всего **41.3%**, что делает эту стратегию наименее рискованной. Остальные стратегии показали отрицательный результат, что согласуется со склонностью рынка к росту в силу роста ВВП и инфляции. В любом случае, речь идет лишь об одной компании и прежде чем делать далекоидущие выводы следует посмотреть другие примеры.
+
+Следующим в списки идет компания Полиметалл:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="720" />
+
+Стратегия `base` фактически соответствует котировкам бумаги с точностью до дивидендов. На примере Полиметалла хорошо видно как растущий тренд сменился падающим и опять вернулся в рост с середины 2022 года. В данном примере победителем по доходности оказалась стратегия `buy` с показателем **54.6%** и просадкой **58%**. На втором месте стратегия `two-way` доходностью **39.4%** и просадкой **59.8%**. Базовая стратегия в данном случае показывает умеренный минус **9.1%**, но с сокрушительным уровнем просадки **80.4%**.
+
+Следующий в списке Сбербанк:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="720" />
+
+На примере Сбербанка также отчетливо видны долгосрочные тренды, которые любит MACD, что позволило стратегии `buy` стать лидером с доходностью **84,7%** и просадкой **43,3%**. На втором месте стратегия `base` с показателями доходности **58,3%** и просадкой **64,9%**. Любопытно, что все стратегии на базе MACD показывают просадку лучше чем `base`: подтверждается наметившаяся тенденция, что стратегия на базе MACD является менее рискованной.
+
+Далее идет Газпром:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="720" />
+
+Газпром со своими черными лебедями напоминает картину, которая наблюдалась для Полюс Золото: лидером по доходности – является стратегия `base` со значением **104.8%** и просадкой **47.3%**, а на втором месте стратегия `buy` со значением доходности **39.3%** и просадкой **31.6%**. Шортовые стратегии на базе MACD опять в красной зоне. Порадуемся за старую школу инвесторов, которая предпочитает держать исключительно акции Газпрома и особо не рыпаться 💪
+
+Наконец Яндекс:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="720" />
+
+Пример технологического гиганта опять выводит стратегии `buy` и `base` в лидеры по доходности с показателями соответственно **24.2%** и **11.8%**, максимальная просадка **44.8%** и **77.5%** соответственно. В очередной раз стратегии на базе MACD показывают более умеренные уровне максимальной просадки, что логично следует из принципа работы MACD: при смене тренда позиция закрывается, что ограничивает объем убытков. Стратегии с использованием коротких позиций (шорт) опять оказались в минусе.
+
+Итоговый рейтинг стратегий по всем компаниям выглядит следующим образом:
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-1" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"style":"bootstrap4","filter":"none","vertical":false,"extensions":["Responsive"],"caption":"<caption>Итоговая таблица<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["base","buy","sell","two_way","base","buy","sell","two_way","base","buy","sell","two_way","base","buy","sell","two_way","base","buy","sell","two_way"],[0.6582946342907428,0.4133497133450624,0.6207712895946867,0.576744461852459,0.8043907040562558,0.5804727204442496,0.5614152852696732,0.5980607535492823,0.6487528344671205,0.4328957128908927,0.4720267725928675,0.4339993890543319,0.4727327161346784,0.3155502291185913,0.6909175249537443,0.7041178575414926,0.7750365200454472,0.4478027625196789,0.6534273128874454,0.5991208364845849],[1.499059590316585,0.8981691917290529,-0.5454885058673281,-0.1376407511640381,-0.01763700880536023,0.5679808415783891,-0.09824989075395696,0.41383243838392,0.5840420824934827,0.7985178439565004,-0.3690949008191512,0.1341325658130603,1.079674267100977,0.4053485523605318,-0.6823070442928854,-0.5532385210400863,0.1944208037825008,0.2244796502282678,-0.5094222280662439,-0.4001142829761307],["Полюс золото","Полюс золото","Полюс золото","Полюс золото","Полиметалл","Полиметалл","Полиметалл","Полиметалл","Сбербанк","Сбербанк","Сбербанк","Сбербанк","Газпром","Газпром","Газпром","Газпром","Яндекс","Яндекс","Яндекс","Яндекс"]],"container":"<table class=\"table table-striped table-hover row-border order-column display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Стратегия<\/th>\n      <th>Просадка<\/th>\n      <th>Доход<\/th>\n      <th>Название<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[[3,"desc"]],"dom":"t","columnDefs":[{"targets":2,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatPercentage(data, 1, 3, \",\", \".\", null);\n  }"},{"targets":3,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatPercentage(data, 1, 3, \",\", \".\", null);\n  }"},{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"autoWidth":false,"orderClasses":false,"responsive":true,"lengthMenu":[10,20,25,50,100],"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= -0.682307 ? '' : 'linear-gradient(90.000000deg, transparent ' + Math.max(1.499060 - value, 0)/2.181367 * 100 + '%, #4E79A7 ' + Math.max(1.499060 - value, 0)/2.181367 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'background':isNaN(parseFloat(value)) || value <= 0.315550 ? '' : 'linear-gradient(90.000000deg, transparent ' + Math.max(0.804391 - value, 0)/0.488840 * 100 + '%, #F28E2B ' + Math.max(0.804391 - value, 0)/0.488840 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\n}"}},"evals":["options.columnDefs.0.render","options.columnDefs.1.render","options.rowCallback"],"jsHooks":[]}</script>
+
+В первой десятке по доходности разместились пять строчек стратегии `buy`, три строчки `base` и две строчки `two_way` при этом первые места по доходности уходят стратегии `base`, но минимальные просадки все-таки у стратегии `buy`, что говорит о большей устойчивости к риску. Безусловно, можно свести доходность и риск в единый показатель, например с использованием [коэффициента Шарпа](https://en.wikipedia.org/wiki/Sharpe_ratio), но, пожалуй, оставлю эту тему на отдельную заметку. Теперь, если сделать предположение, что инвестиции на историческом отрезке были произведены одинаковыми долями в каждую ценную бумагу, тогда:
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-2" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"style":"bootstrap4","filter":"none","vertical":false,"extensions":["Responsive"],"caption":"<caption>Усредненные итоги по всем бумагам<\/caption>","data":[["1","2","3","4"],["base","buy","sell","two_way"],[0.6718414817988489,0.438014227663695,0.5997116370596834,0.5824086596964302],[0.6679119469776371,0.5788992159705484,-0.4409125139599132,-0.108605710196655]],"container":"<table class=\"table table-striped table-hover row-border order-column display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Стратегия<\/th>\n      <th>Просадка<\/th>\n      <th>Доход<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"order":[[3,"desc"]],"dom":"t","columnDefs":[{"targets":2,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatPercentage(data, 1, 3, \",\", \".\", null);\n  }"},{"targets":3,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatPercentage(data, 1, 3, \",\", \".\", null);\n  }"},{"className":"dt-right","targets":[2,3]},{"orderable":false,"targets":0}],"autoWidth":false,"orderClasses":false,"responsive":true,"lengthMenu":[10,20,25,50,100],"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= -0.682307 ? '' : 'linear-gradient(90.000000deg, transparent ' + Math.max(1.499060 - value, 0)/2.181367 * 100 + '%, #4E79A7 ' + Math.max(1.499060 - value, 0)/2.181367 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'background':isNaN(parseFloat(value)) || value <= 0.315550 ? '' : 'linear-gradient(90.000000deg, transparent ' + Math.max(0.804391 - value, 0)/0.488840 * 100 + '%, #F28E2B ' + Math.max(0.804391 - value, 0)/0.488840 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\n}"}},"evals":["options.columnDefs.0.render","options.columnDefs.1.render","options.rowCallback"],"jsHooks":[]}</script>
+
+Выходит так, что за умеренное сокращение доходности **~4%** в случае с `buy` по сравнению с `base` можно получить сокращение уровня возможной просадки **~23%**. Выглядит как вполне достойный размен некоторой доходности на существенное сокращение рисков просадки. Если учесть, что капитал для стратегии `buy` не всегда находится в позиции, а следовательно его можно задействовать, например, на накопительном счете со ставкой **6%** годовых, то получается усредненная по всем бумагам прибавка **~8.9%** за выбранный период, что делает данную стратегию абсолютным лидером теперь и по доходности 🤘
+
+Как я уже упоминал, рынок склонен к росту в силу роста ВВП и инфляции, поэтому медвежья стратегия на базе MACD оказалась самой бестолковой из всего перечня стратегий. Будет ли расти ВВП и рынок всегда? очевидно – вопрос риторический: все рано или поздно заканчивается, но я надеюсь наша цивилизация еще поживет какое-то время 🙃
+
+## Выводы 🍪🍪🍪
+
+Итак, подведем итоги:
+
+1.  Базовая стратегия *купил и держишь* показывает лучшую доходность **61.3%**, но также допускает более существенные просадки в среднем **67.2%**
+2.  Стратегия покупки на сигналах MACD немного уступает по доходности базовой стратегии **57.6%**, но имеет два выгодных свойства: первое – это сокращение уровня просадки или уровня риска до среднего **43.8%**, второе – это возможность перекинуть капитал, находящийся вне позиции, на накопительный счет, что увеличивает доходность и делает ее несколько выше базовой стратегии **66.5%**
+3.  Стратегии на базе MACD с использованием короткой позиции (шорт) показали себя откровенно плохо: в среднем там убыток. Этот факт еще раз подсветил свойство рынков расти, а также напомнил о важности учета транзакционных издержек в трейдинговых стратегиях. Совет – всегда обращать внимание на аккуратный подсчет транзакционных издержек когда вам предлагают поучаствовать капиталом в “туземун” стратегиях на базе технического анализа
+4.  Для справки **66.5%** на отрезке 4.5 года - это приблизительно **12%** годовых при средней инфляции за период **~6.3%**. Не волшебно конечно, но никто и не обещал, что будет волшебство. Такая доходность сравнима с текущей доходностью облигаций далеко не мусорных эмитентов, поэтому новичкам и опасливым инвесторам можно релаксировать в бумагах фиксированной доходности и не забивать себе голову всем этим трейдингом
+5.  Следующим шагом будет логично посчитать работу MACD стратегий для широкого круга акций с разбивкой по отраслям: возможно, это позволит выбирать бумаги более эффективно и также сделает итоговый рейтинг стратегий более репрезентативным
+
+Всем доходов ✊
+
+------------------------------------------------------------------------
+
+<details>
+<summary>
+Исходный код заметки
+</summary>
+
+``` r
+# Необходимые библиотеки
+library(data.table)
+library(quantmod)
+library(rusquant)
+library(TTR)
+library(stringi)
+library(ggplot2)
+library(patchwork)
+library(DT)
+
+# Акции, которые будут тестироваться
+tickers <- c("PLZL", "POLY", "SBER", "GAZP", "YNDX")
+
+# Загрузка котировок с начала 2019 года
+getSymbols(tickers, src = "Finam", from = "2019-01-01")
+
+# Функция для отрисовки графиков котировок, объема, сигналов MACD
+plot_trades <- function(ticker, subset = "2022-07-01::"){
+  
+  plt <- chart_Series(ticker, subset = subset, name = substitute(ticker), )
+  add_Vo() # объем торговли
+  add_MACD() # график MACD
+  add_EVWMA(n = 26, col = my_pal[4]) # взвешенная средняя 
+  add_BBands() # границы волатильности
+  
+  # Корректировки темы графика  
+  plt$Env$theme$bg <- "#1D1E20"
+  plt$Env$theme$grid <- "grey20"
+  plt$Env$theme$labels <- "grey70"
+  plt$Env$theme$up.border<- "grey40"
+  plt$Env$theme$dn.border<- "grey40"
+  plt$Env$theme$up.col<- my_pal[5]
+  plt$Env$theme$dn.col<- my_pal[3]
+  plt$Env$theme$bbands$col$fill <- "black"
+  plt$Env$theme$macd$up.col <- my_pal[5]
+  plt$Env$theme$macd$dn.col <- my_pal[3]
+  plt$Env$theme$macd$signal <- my_pal[2]
+  plt$Env$theme$macd$macd <- my_pal[1]
+  plt
+}
+plot_trades(PLZL) # Полюс золото
+plot_trades(POLY) # Полиметалл
+plot_trades(SBER) # Сбербанк
+plot_trades(GAZP) # Газпром
+plot_trades(YNDX) # Яндекс
+
+# Функция получения дивидендов
+get_divs <- function(ticker, exception = c("YNDX")){
+  # ticker <- "POLY"
+  # browser()
+  
+  if(ticker %in% exception) return(data.table(date = as.Date(paste0(2014:2023, "-01-01")), dividend = 0) |> as.xts())
+  else{
+    link <- paste0("https://smart-lab.ru/q/", ticker, "/dividend/")
+    
+    divs <- rvest::read_html(link) |> 
+      rvest::html_table(header = FALSE) 
+    
+    res <- divs[[1]][-c(1:2),] |> 
+      as.data.table()
+    
+    names(res) <- divs[[1]][2,] |> t() |> 
+      as.vector() |> 
+      janitor::make_clean_names() 
+    
+    num_cols <- c("dividend", "cena_akcii", "div_dohodnost")
+    res[, date:=as.Date(res$data_otsecki, "%d.%m.%Y")][
+      , (num_cols):=lapply(.SD, \(x)stri_replace(x, fixed=",", ".") |> stri_replace(regex="%|₽", "") |> as.double()), .SDcols=num_cols][
+        , div_dohodnost:=div_dohodnost/100][
+          , c("date", num_cols), with=FALSE] |> 
+      as.xts()
+  }
+}
+
+# Функция расчета доходности
+est_inertia <- function(ticker, short_cost=5e-04, trans_cost=0.003){ 
+  # ticker <- "SBER"
+  # short_cost <- 5e-04
+  # trans_cost <- 0.003
+  # browser()
+  trade <- eval(str2expression(ticker)) 
+  names(trade) <- sub(paste0(ticker, "."), "", names(trade))
+  
+  # Расчет сигнала 
+  sgnl <- TTR::MACD(trade$Close) |> lag() 
+  # lag() - активирует стратегию на следующий день после получения сведений о закрытии предыдущего торгового дня 
+  
+  # Определение флагов включение/выключения стратегий
+  sgnl$buy <- ifelse(sgnl$macd - sgnl$signal > 0, 1, 0) # покупаешь по сигналу 
+  sgnl$sell <- ifelse(sgnl$macd -  sgnl$signal > 0, 0, -1) # продаешь по сигналу
+  sgnl$two_way <- ifelse(sgnl$macd - sgnl$signal > 0, 1, -1) # покупаешь и продаешь по сигналу 
+  
+  # Определение момента покупки/продажи для расчета комиссии
+  trade$switch <- fifelse(sgnl$two_way == lag(sgnl$two_way),  0, 1) 
+  
+  # Добавление дивидендов в модель
+  trade <- merge(trade, get_divs(ticker)[,"dividend"], join='left')
+  trade$dividend_rub <- lag(trade$dividend, k = -1)
+  trade$dividend_rub <- replace(trade$dividend, is.na(trade$dividend), 0)
+  
+  # Расчет расходов на торговлю как сумму затрат на покупку/продажу и непокрытую позицию
+  trade$buy_cost <- trade$Open*trade$switch*trans_cost
+  trade$sell_cost <- trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  trade$two_way_cost <- 2*trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  
+  # Расчет дневных прибылей/убытков
+  res <- sgnl$two_way
+  names(res) <- "signal"
+  # Дивиденды дают кумулятивную прибавку к цене актива
+  # Затраты вычитаются 
+  res$base <- dailyReturn(trade$Close + cumsum(trade$dividend_rub)) 
+  res$buy <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$buy - trade$buy_cost/trade$Open)
+  res$sell <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$sell - trade$sell_cost/trade$Open)
+  res$two_way <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$two_way - trade$two_way_cost/trade$Open)
+  
+  merge(res[!is.na(res$two_way)], trade, join = "left") 
+}
+
+# Функция построения графика доходности
+plot_inertia <- function(est, name="", vis = TRUE){
+  # est <- est_inertia("GAZP")
+  
+  strategies <- c("base", "buy", "sell", "two_way")
+  est_dt <- as.data.table(est)[
+    , (strategies):=lapply(.SD, \(x)cumprod(1+x)-1), .SDcols=strategies][
+      , div:=fifelse(dividend_rub > 0, dividend_rub/Open, NA) ]
+  
+  profit_dt <- est_dt[, c("index", strategies), with=FALSE] |> 
+    melt("index") 
+  
+  profit <- profit_dt |>
+    my_ggplot(aes(index, value, col = variable)) + 
+    geom_vline(data = est_dt, aes(xintercept = fifelse(dividend_rub > 0, index, NA)), lty=5, color = "gray80")+
+    geom_line() +
+    geom_label(data = \(x)x[, .(index=last(index), value = last(value)), by=variable], 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    geom_label(data = est_dt, aes(index, Inf, label=scales::percent(div, .1)), color = "gray80", vjust = 1, alpha=.5) +
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Доходность", col = "Стратегия")
+  
+  get_max <- function(out, input){if(out>input) out else input}
+  
+  drawdown_dt <- est_dt[, (paste0(strategies, "_max")):=lapply(.SD, \(x)Reduce(get_max, x, accumulate = TRUE)), .SDcols=strategies][
+    , `:=`(base = (base-base_max)/(1+base_max), 
+           buy = (buy-buy_max)/(1+buy_max), 
+           sell = (sell-sell_max)/(1+sell_max), 
+           two_way=(two_way-two_way_max)/(1+two_way_max))][
+             , c("index", strategies), with=FALSE] |> 
+    melt("index")
+  
+  drawdown <- drawdown_dt |> 
+    my_ggplot(aes(index, value, col = variable)) +
+    geom_line() +
+    geom_label(data = \(x)x[value%in%collapse::fmin(value, x$variable)] |> unique(by = "variable"), 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Просадка", col = "Стратегия")
+  
+  if(vis){
+    profit/drawdown + plot_layout(nrow = 2, heights = c(2, 1), guides = 'collect') + 
+      plot_annotation(title = paste0("Доходность стратегий  для ", name, " | ", deparse(substitute(est))))
+  }else{
+    drawdown_dt[,.(drawdown=min(value)), by=variable][profit_dt[,.(profit=last(value)), by=variable], on="variable"][,name:=name][]
+  }
+}
+
+est_PLZL <- est_inertia("PLZL") 
+plot_inertia(est_PLZL, "Полюс золото")
+
+est_POLY <- est_inertia("POLY")
+plot_inertia(est_POLY, "Полиметалл")
+
+est_SBER <- est_inertia("SBER") 
+plot_inertia(est_SBER, "Сбербанк")
+
+est_GAZP <- est_inertia("GAZP") 
+plot_inertia(est_GAZP, "Газпром")
+
+est_YNDX <- est_inertia("YNDX")
+plot_inertia(est_YNDX, "Яндекс")
+
+# Подготовка сводной таблицы результатов
+all <- list(plot_inertia(est_PLZL, "Полюс золото", FALSE),
+            plot_inertia(est_POLY, "Полиметалл", FALSE),
+            plot_inertia(est_SBER, "Сбербанк", FALSE),
+            plot_inertia(est_GAZP, "Газпром", FALSE),
+            plot_inertia(est_YNDX, "Яндекс", FALSE)) |>
+  rbindlist() 
+
+# Изменение знака просадки для корректной отрисовки таблицы
+all[,drawdown:=-drawdown]
+
+# Таблица результатов для всех стратегий и всех ценных бумаг
+all |>
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 20, order = list(list(3, 'desc')), dom = 't'),
+            caption = "Итоговая таблица", colnames = c("Стратегия", "Просадка", "Доход", "Название")) |>
+  formatPercentage(c("drawdown", "profit"), digits = 1) |>
+  formatStyle('profit',
+              background = styleColorBar(all$profit, my_pal[1]),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center') |>
+  formatStyle('drawdown',
+              background = styleColorBar(all$drawdown, my_pal[2]),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center')
+
+# Таблица результатов для всех стратегий с усреднением результатов по ценным бумагам
+all[, lapply(.SD, mean), by=variable, .SDcols = is.numeric] |>
+  datatable(style = 'bootstrap4',  extensions = 'Responsive', 
+            options = list(pageLength = 20, order = list(list(3, 'desc')), dom = 't'),
+            caption = "Усредненные итоги по всем бумагам", colnames = c("Стратегия", "Просадка", "Доход")) |>
+  formatPercentage(c("drawdown", "profit"), digits = 1) |>
+  formatStyle('profit',
+              background = styleColorBar(all$profit, my_pal[1]),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center') |>
+  formatStyle('drawdown',
+              background = styleColorBar(all$drawdown, my_pal[2]),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center')
+
+# Функция расчета доходности от накопительного счета при условии незадействованного капитала стратегии "buy"
+get_deposit <- function(est, rate = .06){nrow(est[est$signal > 0])*rate/365}
+
+# Расчет усредненной дополнительной доходности по всем акциям
+list(est_PLZL, est_POLY, est_SBER, est_GAZP, est_YNDX) |> lapply(get_deposit) |> unlist() |> mean() |> round(4)
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+Простой способ узнать о новых публикациях – подписаться на Telegram-канал:
+
+<div class="telegram-icon" align="left">
+
+<a href="https://t.me/investcookies" target="_blank" rel="noopener noreferrer me">
+🍪🍪🪙 InvestCookies
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+<path
+        d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.509 1.793.997 3.592 1.48 5.388.16.36.506.494.864.498l-.002.018s.281.028.555-.038a2.1 2.1 0 0 0 .933-.517c.345-.324 1.28-1.244 1.811-1.764l3.999 2.952.032.018s.442.311 1.09.355c.324.022.75-.04 1.116-.308.37-.27.613-.702.728-1.196.342-1.492 2.61-12.285 2.997-14.072l-.01.042c.27-1.006.17-1.928-.455-2.474a1.654 1.654 0 0 0-1.034-.407z" />
+</svg>
+</a>
+
+</div>
