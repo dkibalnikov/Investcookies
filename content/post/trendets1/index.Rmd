@@ -7,7 +7,7 @@ tags: ["analysis", "R", "stock market", "advanced"]
 math: true # when math activated -> don't use brackets:( and )
 ShowToc: true
 cover:
-    image: "bart3.png"
+    image: "bart4.png" 
     alt: "<Полный трендец>"
     caption: "<text>"
     relative: true # To use relative path for cover image, used in hugo Page-bundles
