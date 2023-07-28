@@ -1,7 +1,7 @@
 ---
 title: "Моя версия избыточной смертности среди мужского населения призывного возраста в 2022 году"
 author: "🍪🍪🪙"
-date: 2025-07-08
+date: 2023-07-28
 categories: ["статистика"]
 tags: ["analysis", "R", "COVID", "для всех", "знакомство с реальностью"]
 math: true # when math activated -> don't use brackets:( and )
