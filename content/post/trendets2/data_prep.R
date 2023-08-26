@@ -3,6 +3,7 @@ library(quantmod)
 library(rusquant)
 library(xml2)
 library(furrr)
+library(stringi)
 
 plan(multisession, workers = 6)
 
@@ -111,9 +112,9 @@ divs <- ticks_info[stri_detect(nazvanie, regex  = "п$", negate=T)][["tiker"]] |
   furrr::future_map(get_divs, .progress = T) |>
   purrr::flatten()
 
-trades <- ticks |> 
+trades <- ticks_info$tiker |> 
   purrr::map(\(x)try(getSymbols.Finam(x, from = "2019-01-01"), silent=T), .progress = T) |> 
-  `names<-`(ticks)
+  `names<-`(ticks_info$tiker)
 
 trades1 <- purrr::keep(trades, ~is.xts(.)) |> 
   lapply(xts) |>

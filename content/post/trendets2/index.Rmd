@@ -1,13 +1,13 @@
 ---
 title: "Полный трендец - финал 🏁"
 author: "🍪🍪🪙"
-date: 2025-08-08
+date: 2025-08-21
 categories: ["data science"]
 tags: ["analysis", "R", "stock market", "advanced"]
 math: true # when math activated -> don't use brackets:( and )
 ShowToc: true
 cover:
-    image: "bart4.png" 
+    image: "divs.png" 
     alt: "<Полный трендец>"
     caption: "<text>"
     relative: true # To use relative path for cover image, used in hugo Page-bundles
@@ -28,10 +28,7 @@ my_ggplot <- function(dt, ...){
   ggplot(dt, ...) +
     ggpp::annotate("text_npc", npcx = .5, npcy = .5, alpha = .9, size = 10, label = "InvestCookies.ru", color = "#1D1E20")
 }
-
 ```
-
-
 
 ```{r, include=FALSE}
 # Необходимые библиотеки
@@ -43,11 +40,112 @@ library(stringi)
 library(ggplot2)
 library(patchwork)
 library(DT)
+library(treemapify)
 ```
 
-```{r, include=FALSE, fig.height=8}
+## Про везение 🍀
+
+Предыдущие статьи серии: 
+
+- [Полный трендец 📈📉](/post/trendets)
+- [Полный трендец - бектестинг 🔙](/post/trendets1)
+
+Наверное все слышали фразу американского происхождения: 
+
+> If You're So Smart, Why Aren't You Rich?
+
+> Если ты такой умный, то почему ты не богат? 
+
+Действительно, *успешный человек* в широком понимании этого слова не будет валяться в подворотне и кряхтеть что-то невнятное на предмет подаяния. Впрочем, бывают менее однозначные случаи. К примеру, писатель Марк Твен, вошедший в литературную историю как великий гуманист, кроме прочих талантов, не на шутку увлекался изобретательством и даже был автором патента на усовершенствование подтяжек. Ведомый своим увлечением, он без колебаний инвестировал все свое состояние в перспективное изобретение: так называемая *наборная машина Пейджа* должна была перевернуть отрасль печати того времени. Как оно часто бывает, что-то пошло не так и со временем проросло понимание бесперспективности проекта. Оказалось, что Пейдж пытался разрешить финансовые проблемы за счет инвестиций в свое изобретение, а Марк Твен как незадачливый инвестор остался фактически без средств к существованию уже в преклонном возрасте. Однако, нет горя без добра, и на фоне полного инвестиционного краха Марк Твен сошелся с нефтяным магнатом по прозвищу "Цербер Роджерс", который помог великому писателю разобраться с его финансовыми делами. Со временем писатель-гуманист и нефтяной магнат стали настоящими друзьями, а влияние Марк Твена сделало из безжалостного скряги настоящего благотворителя и мецената. Остается только гадать, что бы было, если Марк Твен инвестировал свои деньги в действительно успешный проект, например, в печатную машинку Ундервуда. В любом случае, в какой-то момент Роджерс принял мысль, что деньги не могут быть универсальным мерилом успеха или интеллекта.
+
+Насколько умен человек, который вошел в казино и сорвал многомиллионный джек-пот? Естественно, такой человек расскажет о том, что обладает совершенно уникальной техникой выбора момента нажатия рычага однорукого бандита. Вероятно, у такой техники быстро появятся свои сторонники, которые будут проводить тренинги и марафоны. Все это выглядит как сказка, хотя в статистике на этот случай есть свое вероятностное распределение. На одном из хвостов этого распределения будет находиться наш счастливчик, а на другом соответственно полные неудачники, которые каждый день приходят в казино и теряют там свои деньги. Общая масса таких игроков будет всегда в некотором минусе, который образуется из-за необходимости казино иметь прибыль. 
+
+Каждый человечек на протяжении свой жизни принимает инвестиционные решения, иногда даже не задумываясь об этом: он/она выбирают профессию, выбирают область для своего бизнеса, решают пойти в казино или купить недвижимость, инвестировать в условный проект *наборной машины Пейджа* или направить средства на финансовые рынки. В этой связи у меня есть две новости, как принято, одна хорошая и одна плохая: хорошая заключается в том, что для всех случаев работает теория вероятности, а плохая заключается в том, что для всех случаев работает теория вероятности (тут нет ошибки, это новость 2 в 1). Действительно, человек может быть талантлив и изобретателен, но терпеть неудачу раз за разом по независящим от него причинам или наоборот. Неизменным для двух случаев будет только готовность принятия риска то есть готовность условно сделать шаг на порог казино. Конечно, умный человек понимает, что в среднем казино будет уменьшать капитал игрока, а финансовый рынок будет в среднем его увеличивать по причинам, о которых я уже говорил [ранее](/post/trendets1/#результаты-). Современному инвестору с минимальным порогом входа сегодня доступны действительно мощные инструменты: маржинальные сделки, опционы. То есть любой человек с улицы может с плечом войти в бумагу на пороге скачкообразного роста и озолотиться. Возможно, что у такого человека есть инсайд, или дар предвидения, или талант аналитика, который понял фундаментальные перспективы роста бумаги.
+
+Нечто подобное работает и с техническим анализом, но в этом случае аналитик пытается поймать паттерн инерционного движения цены. В силу того, что развороты трендов случаются не так часто и такие развороты всегда связаны с явными/не явными фундаментальными обстоятельствами, основной хлеб технического анализа -- это попытка поймать паттерн тренда или инерции. Именно поэтому мне интересная модель MACD как эмпирически наиболее рабочая техника торговли на базе технического анализа. 
+
+Имеет смысл разобрать простой пример. Предлагаю взять профиль наиболее выдающегося трейдера у самого популярного брокера. Сюжет будет приблизительно следующий: 
+
+> За год мне удалось из 1000 рублей капитала заработать 30 млн. 
+
+Выглядит невероятно и такой успех точно нельзя объяснить везением или все-таки можно? ОК, смотрим на  количество сделок трейдера, которых приблизительно 1000 в месяц или 12к в год. Теперь я сделаю несколько простых допущений для того чтобы сложить цельную картинку: 
+
+- Допустим, что из 4.5 млн. счетов у самого популярного брокера агрессивных трейдеров около 10000, что выглядит правдоподобно 
+- Допустим, что агрессивные трейдеры в силу своей агрессивности торгуют с маржинальным плечом X5 внутри дня и совершенно не важно как именно: на росте или падении и какую стратегию они используют, буду считать, что они торгуют рандомно 
+- Допустим, что они используют стоп-лосс и стоп-профит в момент достижения прибыли 10% от базового капитала ,то есть, у тебя есть условная 1000 рублей, ты открываешь позицию с плечом -- 5 000 рублей, бумага растет на 2% и позиция закрывается с доходностью 100 рублей к базовому капиталу т.е. было 1000, а стало 1100. Опять же нет какой-то фантастики в этом допущении
+- Допустим, что трейдеры делают приблизительно одинаковую ставку на рост/падение
+- Комиссия за сделку известна и составляет **0.04%**
+
+Теперь я использую биномиальное распределение, чтобы оценить количество *трейдеров-везунчиков*. Несмотря на название для *трейдеров-везунчиков* достаточно иметь на 100 и выше сделок в плюсе чем в минусе из 12 тыс. сделок за год 😮 Считаем:
+```{r}
+# Нано-модель трейдеров-везунчиков
+n_traders <- 1e4
+n_order <- 12e3
+start_money <- 1000
+profit <- 1.1
+comission <- 0.0004
+
+# Генерация результатов торгов
+set.seed(1982)
+mdl <- rbinom(n_traders, n_order, .5) 
+
+data.table(traders=mdl) |>
+  my_ggplot(aes(traders-n_order/2)) + 
+  geom_density(aes(y = after_stat(20*count)), col = "white", alpha = .3, fill = "white") +
+  geom_histogram(aes(fill = fifelse(traders > quantile(mdl, .99), "1% везунчики", "99% прочих")), binwidth = 20, col = "black", alpha=.5) + 
+  scale_fill_manual(values = c("1% везунчики" = my_pal[4], "99% прочих"=my_pal[3])) +
+  labs(title = "Моделирование трейдеров-везунчиков", y = "Количество трейдеров", x = "Превышение удачных сделок над неудачными", fill ="Трейдеры:")
+
+```
+
+Вероятность получения прибыли/убытка в этой нано-модели взята 50% то есть фактически речь идет о подкидывании монетки 12 тысяч раз для каждого из 10 тысяч трейдеров, из числа которых нашлось сотня-другая трейдеров, угадавший на 125 раз больше чем в среднем это должно происходить, что соответствует 1% трейдеров-везунчиков. Получается, что статистически вполне возможная ситуация из 1000 рублей изначального капитала заработать 30 млн. или даже больше, более того, такие люди **просто должны быть**: не в товарных количества конечно, но штучно. Если посмотреть на трейдеров, которые попали в верхний 1% квантиль, отсортированные по убыванию дохода, то можно увидеть в топе невероятные цифры доходности:
+```{r}
+# Таблица трейдеров-везунчиков
+data.table(`Сделки в плюсе` =  mdl[mdl > quantile(mdl, .99)] - n_order/2)[ # везунчики, лучший 1% от всех трейдеров
+  , `Доходность, млн.руб` := round(profit^`Сделки в плюсе`*(1 + comission)^(-2*n_order)*start_money/1e6, 2)][
+    , `Доходность, %`:= round(`Доходность, млн.руб`*1e5, 2)][order(-`Доходность, млн.руб`)]  |> 
+  DT::datatable(style = 'bootstrap4',  
+                extensions = 'Responsive', 
+                options = list(dom = 'tp'))
+```
 
 
+
+
+## Рынок акций РФ 🇷🇺
+
+Мне удалось поднять и собрать все данные, относящиеся к российскому рынку акций за 4 с половиной года, включая данные по дивидендам, объему эмиссии и конечно данные о ценовых котировках. Публичного анализа доходности по указанному спектру данных я пока не встречал на просторах интернета, что позволяет мне говорить о некоторой уникальности настоящего мини-исследования. Скрипт загрузки данных останется в приватном режиме, но данные будут доступны публично по [ссылке](https://www.dropbox.com/scl/fi/0lli3zt0nqw5xqbb070p9/trendets2_data.qs?rlkey=vq0jny0j27nc1ypgnxvsqxxy4&dl=0) 
+
+В выборку попали 207 компаний, которые обладают по крайней мере 1000 наблюдений ценовых котировок. В первую очередь, было любопытно посмотреть какие компании являются так называемыми дойными коровами то есть компаниями, которые приносят больше всего дивидендов: 
+
+```{r, fig.height=8, fig.width=10}
+# Непосредственно данные по рынку акций РФ
+qs::qload("data.qs")
+
+# Таблица с количеством эмитированных акций по тикеру
+n_emit <- stats[, .(year, ticker, cislo_akcij_ao_mln, cislo_akcij_ap_mln)] |>
+  melt(id.vars = c('year', "ticker")) |> 
+  _[!is.na(value)] |> 
+  _[, ticker:=fifelse(variable%like%"_ap_", stri_c(ticker, "P"), ticker)] |> 
+  _[, .(year, ticker, n_emit = value)]
+
+# Починка дивидендов Газпрома, которые отменили
+divs$GAZP[as.Date("2022-07-20")]$dividend  <- 0
+
+# Подготовка данных для визуализации
+market_divs <- divs |> 
+  lapply(as.data.table) |> 
+  rbindlist(use.names = TRUE, fill = TRUE, idcol = "ticker") |>
+  _[, year:=year(index)] |> 
+  merge(n_emit, by = c("year", "ticker")) |> # подключение данных по эмиссии акций
+  merge(ticks_info[, .(tiker, industry)], by.x ="ticker", by.y ="tiker") |>  # подключение справочника по отраслям
+  _[, div_vol:=n_emit*dividend]|> # расчет объема дивидендов
+  _[year>2018] |> 
+  _[, ticker:=stri_sub(ticker, 1L, 4L)]|> # объединение префов и обычных акций
+  _[, .(div_vol = sum(div_vol)), by =.(industry, year, ticker)] |>
+  _[, year_totals:=stri_c(year, "г. | ", round(sum(div_vol)/1e6, 2), " трлн."), by = year][] 
+
+# Непосредственно картинка
 market_divs |>
   my_ggplot(aes(area = div_vol, fill = industry, label = ticker, subgroup = industry)) + 
   geom_treemap(alpha = .5) +
@@ -58,8 +156,216 @@ market_divs |>
   labs(title = "Структура выплат дивидендов рынка акций РФ", fill = "Отрасли")
 ```
 
+Первое, что брасается в глаза -- это объем дивидендов за 2022 год, который стал историческим рекордом и достиг **3.66 трлн. рублей**. Данный рекорд был ожидаем в 2021 году и в частности поэтому не без нервов, но я увеличил позицию в акциях в первой половине 2022 года. Можно сказать, что в тот момент я рискнул, но такой риск был продиктован некоторым расчетом, который теперь можно признать вполне успешным. 
+
+Второе, что бросается в глаза -- это то как много дивидендов платит Газпром в том числе в 2022 году. На самом деле ожидалось еще больше, но, как известно, часть дивидендов была отменена. Кстати, этот момент я совершенно забыл в своей предыдущей [заметке](/post/trendets1), что несколько исказило итоговые результаты для Газпрома, но в целом это не меняет сделанных тогда выводов.
 
 
+```{r, cache=TRUE}
+# Функция расчета доходности
+est_inertia <- function(trade, div=divs, short_cost=5e-04, trans_cost=0.003){ 
+  # trade <- trades$GECO
+  # short_cost <- 5e-04
+  # trans_cost <- 0.003
+  # browser()
+  ticker <- stri_replace(names(trade)[1], fixed = ".Open", "")
+  names(trade) <- sub(paste0(ticker, "."), "", names(trade))
+  
+  # Расчет сигнала 
+  sgnl <- TTR::MACD(trade$Close) |> lag() 
+  # lag() - активирует стратегию на следующий день после получения сведений о закрытии предыдущего торгового дня 
+  
+  # Определение флагов включение/выключения стратегий
+  sgnl$buy <- ifelse(sgnl$macd - sgnl$signal > 0, 1, 0) # покупаешь по сигналу 
+  sgnl$sell <- ifelse(sgnl$macd -  sgnl$signal > 0, 0, -1) # продаешь по сигналу
+  sgnl$two_way <- ifelse(sgnl$macd - sgnl$signal > 0, 1, -1) # покупаешь и продаешь по сигналу 
+  
+  # Определение момента покупки/продажи для расчета комиссии
+  trade$switch <- fifelse(sgnl$two_way == lag(sgnl$two_way),  0, 1) 
+  
+  # Добавление дивидендов в модель
+  if(is.null(div[[ticker]])) div[[ticker]] <- data.table(date = as.Date(paste0(2014:2023, "-01-01")), dividend = 0) |> 
+    as.xts()
+  
+  trade <- merge(trade, div[[ticker]][,"dividend"], join='left')
+  trade$dividend_rub <- lag(trade$dividend, k = -1)
+  trade$dividend_rub <- replace(trade$dividend_rub, is.na(trade$dividend_rub), 0)
+  
+  # Расчет расходов на торговлю как сумму затрат на покупку/продажу и непокрытую позицию
+  trade$buy_cost <- trade$Open*trade$switch*trans_cost
+  trade$sell_cost <- trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  trade$two_way_cost <- 2*trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  
+  # Расчет дневных прибылей/убытков
+  res <- sgnl$two_way
+  names(res) <- "signal"
+  # Дивиденды дают кумулятивную прибавку к цене актива
+  # Затраты вычитаются 
+  res$base <- dailyReturn(trade$Close + cumsum(trade$dividend_rub)) 
+  res$buy <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$buy - trade$buy_cost/trade$Open)
+  res$sell <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$sell - trade$sell_cost/trade$Open)
+  res$two_way <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$two_way - trade$two_way_cost/trade$Open)
+  
+  merge(res[!is.na(res$two_way)], trade, join = "left") 
+}
+# Функция построения графика доходности
+plot_inertia <- function(est, name="", vis = TRUE){
+  # est <- est_inertia("SBER")
+  
+  strategies <- c("base", "buy", "sell", "two_way")
+  est_dt <- as.data.table(est)[
+    , (strategies):=lapply(.SD, \(x)cumprod(1+x)-1), .SDcols=strategies][
+      , div:=fifelse(dividend_rub > 0, dividend_rub/Open, NA) ]
+  
+  profit_dt <- est_dt[, c("index", strategies), with=FALSE] |> 
+    melt("index") 
+  
+  profit <- profit_dt |>
+    my_ggplot(aes(index, value, col = variable)) + 
+    geom_vline(data = est_dt, aes(xintercept = fifelse(dividend_rub > 0, index, NA)), lty=5, color = "gray80")+
+    geom_line() +
+    geom_label(data = \(x)x[, .(index=last(index), value = last(value)), by=variable], 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    geom_label(data = est_dt, aes(index, Inf, label=scales::percent(div, .1)), color = "gray80", vjust = 1, alpha=.5) +
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Доходность", col = "Стратегия")
+  
+  get_max <- function(out, input){if(out>input) out else input}
+  
+  drawdown_dt <- est_dt[, (paste0(strategies, "_max")):=lapply(.SD, \(x)Reduce(get_max, x, accumulate = TRUE)), .SDcols=strategies][
+    , `:=`(base = (base-base_max)/(1+base_max), 
+           buy = (buy-buy_max)/(1+buy_max), 
+           sell = (sell-sell_max)/(1+sell_max), 
+           two_way=(two_way-two_way_max)/(1+two_way_max))][
+             , c("index", strategies), with=FALSE] |> 
+    melt("index")
+  
+  drawdown <- drawdown_dt |> 
+    my_ggplot(aes(index, value, col = variable)) +
+    geom_line() +
+    geom_label(data = \(x)x[value%in%collapse::fmin(value, x$variable)] |> unique(by = "variable"), 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Просадка", col = "Стратегия")
+  
+  if(vis){
+    profit/drawdown + plot_layout(nrow = 2, heights = c(2, 1), guides = 'collect') + 
+      plot_annotation(title = paste0("Доходность стратегий  для ", name, " | ", deparse(substitute(est))))
+  }else{
+    drawdown_dt[,.(drawdown=min(value)), by=variable][profit_dt[,.(profit=last(value)), by=variable], on="variable"][,name:=name][]
+  }
+}
+
+# Непосредственно расчет стратегий
+mdl_lst <- purrr::map(trades, est_inertia, .progress = T)
+
+# Получение итоговых статистик
+performance <- mapply(\(x, y)plot_inertia(x, name = y, vis = F), mdl_lst, names(mdl_lst), SIMPLIFY = F) |> 
+  rbindlist(use.names = TRUE, fill = TRUE, idcol = "ticker") |>
+  merge(ticks_info[, .(ticker=tiker, industry)], by="ticker")
+```
+
+## Результаты моделирования 🔮
+
+Описание стратегий и расчетов можно найти в предыдущей [заметке серии](/post/trendets1). Напомню, что я рассматриваю четыре вида стратегии:  
+
+- `base` – это базовая стратегия купил и держишь, думаю, тут пояснять ничего не нужно    
+- `buy` – данная стратегия подразумевает покупки и продажи по сигналу MACD, а именно при возникновении первых зеленых столбиков осуществляется покупка, при возникновении первых красных столбиков осуществляется продажа   
+- `sell` – такая стратегия также подразумевает покупки и продажи по сигналу MACD, но уже при возникновении первых красных столбиков осуществляется продажа в шорт, а при возникновении первых зеленых столбиков позиция закрывается  
+- `two_way` – последняя стратегия комбинирует стратегии `buy` и `sell` т.е. в момент появления красных столбиков осуществляется продажа актива и также продажа в шорт двумя отдельными транзакциями с соответствующими накладными расходами; в момент появления зеленых столбиков делаются еще две транзакции, обратные описанному
+
+```{r}
+# Доходности стратегий
+performance |> 
+  my_ggplot(aes(variable, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 15, labels = scales::label_percent()) +
+  geom_text(data = ~.[,.(median=median(profit)), by = variable], 
+            aes(y=Inf, label=scales::percent(median)), vjust=1) + 
+  labs(title = "Доходности стратегий", 
+       subtitle = "С начала 2019 года по август 2023 года\nСверху выведена медиана доходности стратегии в процентах", 
+       col = "Стратегия", fill = "Стратегия", x = "Стратегия", y = "Доходность")
+```
+
+Для тех, кто не знаком с данным типом диаграммы прошу воспользоваться [Википедией](https://ru.m.wikipedia.org/wiki/%D0%AF%D1%89%D0%B8%D0%BA_%D1%81_%D1%83%D1%81%D0%B0%D0%BC%D0%B8), но идея таких диаграмм достаточно тривиальна: *ящик*(прямоугольник) - это **50%** от всей массы наблюдений. Нижний *ус* ящика показывает тех самых неудачников, а верхний -- соответственно везунчиков. В такие *усы* попадают уже **~95%** наблюдений. Все остальное считается выбросами и показаны точками. Линия внутри ящика показывает медианное значение стратегии.
+
+Похоже, что *большие данные* все расставили на свои места. Очевидно, что стратегия купил и тупо держишь обыгрывает все стратегии на базе MACD, при этом стратегии с использованием коротких позиций (шорт) в принципе не показали доходность. Наиболее успешной стратегией на базе MACD оказалась `buy` с доходностью **~49%**, что не так уж вдохновляет на фоне медианы базовой стратегии, которая равна **~170%**. Кроме того, делая ставку на эту простую стратегию можно сорвать джек-пот и попасть в заветные точки наверху с диапазоном доходностей **X10-X25**.
+
+Будем надеяться, что уровень просадки как характеристика риска покажет более интересную картину: 
+
+```{r}
+# Просадки стратегий
+performance |> 
+  my_ggplot(aes(variable, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = drawdown), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) + 
+  geom_text(data = ~.[,.(median=median(drawdown)), by = variable], 
+            aes(y=Inf, label=scales::percent(median)), vjust=1) + 
+  scale_y_continuous(n.breaks = 20, labels = scales::label_percent(), expand = expansion(mult = .15)) +
+  labs(title = "Просадки стратегий", 
+       subtitle = "С начала 2019 года по август 2023 года\nСверху выведена медиана доходности стратегии в процентах", 
+       col = "Стратегия", fill = "Стратегия", y = "Уровень просадки", x = "Стратегия") 
+```
+
+Медианный показатель просадки базовой стратегии составляет **~53%**, что выше аналогичного показателя стратегии `buy` равного **~47%**. Таким образом, подтверждается гипотеза о том, что стратегия `buy` -- является менее рискованной опцией, но которая за это приносит в жертву доходность. Впрочем, с учетом доходности такой стратегии на уровне доходности облигаций какой-то смысл можно было уловить, если медиана по просадкам находилась в диапазоне **10-20%**, не хуже.
+
+Может быть что-то более интересное можно найти, если посмотреть картинку в разрезе отраслей: 
+```{r, fig.height=8}
+# Доходности стратегий стратегий по отраслям
+performance[, `:=`(n=.N, med = median(profit)), by = industry][n > 12] |>  
+  my_ggplot(aes(industry, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 15, labels = scales::label_percent(big.mark = "")) +
+  coord_flip() + 
+  labs(title = "Доходности стратегий стратегий по отраслям", 
+       subtitle = "С начала 2019 года по август 2023 года\n",
+       col = "Стратегия", fill = "Стратегия", y = "Доходность", x = "Отрасль") +
+  theme(legend.position = "bottom")
+```
+
+По всем ключевым отраслям также доминирует базовая стратегия, оставляя все стратегии на базе MACD далеко позади. Надо сказать, я слегка разочарован так как по итогам предыдущей заметки я надеялся, что нашел инвестиционный грааль, но анализ широкого объема данных вернул меня к жесткой реальности 🥺
+
+В завершении считаю любопытным посмотреть какие отрасли или даже компании показали наибольшую доходность за рассматриваемый промежуток времени:
+
+```{r, fig.height=8}
+# Доходности стратегии "купил и держи" по отраслям
+performance[variable == "base"][, `:=`(n=.N, med = median(profit)), by = industry][n > 3] |> 
+  my_ggplot() + 
+  geom_boxplot(aes(x = reorder(industry, med), y = profit), alpha = .5, outlier.shape = NA) + 
+  geom_jitter(aes(x = reorder(industry, med), y = profit, col = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 10, labels = scales::label_percent(big.mark = ""), expand = expansion(mult=.2)) +
+  geom_text(data = ~.[,.(median=median(profit)), by = industry], 
+            aes(x = industry, y=Inf, label=scales::percent(median), col = median), hjust=1) + 
+  geom_text(data = ~.[profit > med*2 & profit > 4], 
+            aes(x = industry, y=profit, label=ticker, col = profit), hjust=0.5, check_overlap = T, vjust=1)+
+  coord_flip() + 
+  firatheme::scale_color_fira(continuous = T) + 
+  labs(title = 'Доходности стратегии "купил и держи" по отраслям', 
+       subtitle = "С начала 2019 года по август 2023 года\nСправа выведена медиана доходности отрасли в процентах",
+       col = "Стратегия", fill = "Стратегия",  x = "Отрасль", y = "Доходность") + 
+  theme(legend.position = "none")
+```
+
+Наиболее успешной отраслью за период -- является сфера энергосбыта, а представители этой отрасли, аффелированные с ТНС, показали фантастические **X10-X25** доходности. Сейчас дочки ТНС торгуются с мультипликатором на уровне Tesla, что является достаточно уникальным явлением для российского рынка. Возможно, такой рост как-то связан с созданием инфраструктуры для электромобилей, но в новостях нет об этом упоминаний. Глава ТНС Энерго -- человек, который всю карьеру проработал в структуре РОССЕТЕЙ и ждать от такого менеджмента прорывного креатива вряд ли стоит, да и в целом отрасль уже как лет 100 -- является коммодити, жестко регулируемая государством во всех странах. В общем, не очень понятно, что там ловить, кроме как сильное падение до фундаментальных уровней 😎  
+
+## Выводы 🍪
+
+- Принятие более высокого уровня риска способствует получению более высокого дохода при везении, но также и более высоким убыткам при невезении. Корректная оценка медианы доходности -- есть проявление знаний и интеллекта
+- Стратегии на базе сигналов MACD проигрывают простой стратегии "купил и держи" 
+- Чемпионом роста доходности среди отраслей экономики РФ за прошедшие 4.5 года -- является энергосбыт и, в частности, дочки ТНС Энерго показали доходность **X10-X25**
+
+Всем доходов 🤘
 
 ---
 
@@ -67,7 +373,242 @@ market_divs |>
 <summary>Исходный код заметки</summary>
 
 ```{r, eval=FALSE, echo = TRUE}
+# Необходимые библиотеки
+library(data.table)
+library(quantmod)
+library(rusquant)
+library(TTR)
+library(stringi)
+library(ggplot2)
+library(patchwork)
+library(DT)
+library(treemapify)
 
+# Нано-модель трейдеров-везунчиков
+n_traders <- 1e4
+n_order <- 12e3
+start_money <- 1000
+profit <- 1.1
+comission <- 0.0004
+
+# Генерация результатов торгов
+set.seed(1982)
+mdl <- rbinom(n_traders, n_order, .5) 
+
+data.table(traders=mdl) |>
+  my_ggplot(aes(traders-n_order/2)) + 
+  geom_density(aes(y = after_stat(20*count)), col = "white", alpha = .3, fill = "white") +
+  geom_histogram(aes(fill = fifelse(traders > quantile(mdl, .99), "1% везунчики", "99% прочих")), binwidth = 20, col = "black", alpha=.5) + 
+  scale_fill_manual(values = c("1% везунчики" = my_pal[4], "99% прочих"=my_pal[3])) +
+  labs(title = "Моделирование трейдеров-везунчиков", y = "Количество трейдеров", x = "Превышение удачных сделок над неудачными", fill ="Трейдеры:")
+
+# Таблица трейдеров-везунчиков
+data.table(`Сделки в плюсе` =  mdl[mdl > quantile(mdl, .99)] - n_order/2)[ # везунчики, лучший 1% от всех трейдеров
+  , `Доходность, млн.руб` := round(profit^`Сделки в плюсе`*(1 + comission)^(-2*n_order)*start_money/1e6, 2)][
+    , `Доходность, %`:= round(`Доходность, млн.руб`*1e5, 2)][order(-`Доходность, млн.руб`)]  |> 
+  DT::datatable(style = 'bootstrap4',  
+                extensions = 'Responsive', 
+                options = list(dom = 'tp'))
+
+# Непосредственно данные по рынку акций РФ
+qs::qload("data.qs")
+
+# Таблица с количеством эмитированных акций по тикеру
+n_emit <- stats[, .(year, ticker, cislo_akcij_ao_mln, cislo_akcij_ap_mln)] |>
+  melt(id.vars = c('year', "ticker")) |> 
+  _[!is.na(value)] |> 
+  _[, ticker:=fifelse(variable%like%"_ap_", stri_c(ticker, "P"), ticker)] |> 
+  _[, .(year, ticker, n_emit = value)]
+
+# Починка дивидендов Газпрома, которые отменили
+divs$GAZP[as.Date("2022-07-20")]$dividend  <- 0
+
+# Подготовка данных для визуализации
+market_divs <- divs |> 
+  lapply(as.data.table) |> 
+  rbindlist(use.names = TRUE, fill = TRUE, idcol = "ticker") |>
+  _[, year:=year(index)] |> 
+  merge(n_emit, by = c("year", "ticker")) |> # подключение данных по эмиссии акций
+  merge(ticks_info[, .(tiker, industry)], by.x ="ticker", by.y ="tiker") |>  # подключение справочника по отраслям
+  _[, div_vol:=n_emit*dividend]|> # расчет объема дивидендов
+  _[year>2018] |> 
+  _[, ticker:=stri_sub(ticker, 1L, 4L)]|> # объединение префов и обычных акций
+  _[, .(div_vol = sum(div_vol)), by =.(industry, year, ticker)] |>
+  _[, year_totals:=stri_c(year, "г. | ", round(sum(div_vol)/1e6, 2), " трлн."), by = year][] 
+
+# Непосредственно картинка
+market_divs |>
+  ggplot(aes(area = div_vol, fill = industry, label = ticker, subgroup = industry)) + 
+  geom_treemap(alpha = .5) +
+  geom_treemap_text(grow = T, reflow = T, colour = "white") +
+  facet_grid(~year_totals) + 
+  firatheme::scale_fill_fira() +
+  theme(legend.position = "bottom", strip.text.x = element_text(size = 20)) + 
+  labs(title = "Структура выплат дивидендов рынка акций РФ", fill = "Отрасли")
+
+# Функция расчета доходности
+est_inertia <- function(trade, div=divs, short_cost=5e-04, trans_cost=0.003){ 
+  # trade <- trades$GECO
+  # short_cost <- 5e-04
+  # trans_cost <- 0.003
+  # browser()
+  ticker <- stri_replace(names(trade)[1], fixed = ".Open", "")
+  names(trade) <- sub(paste0(ticker, "."), "", names(trade))
+  
+  # Расчет сигнала 
+  sgnl <- TTR::MACD(trade$Close) |> lag() 
+  # lag() - активирует стратегию на следующий день после получения сведений о закрытии предыдущего торгового дня 
+  
+  # Определение флагов включение/выключения стратегий
+  sgnl$buy <- ifelse(sgnl$macd - sgnl$signal > 0, 1, 0) # покупаешь по сигналу 
+  sgnl$sell <- ifelse(sgnl$macd -  sgnl$signal > 0, 0, -1) # продаешь по сигналу
+  sgnl$two_way <- ifelse(sgnl$macd - sgnl$signal > 0, 1, -1) # покупаешь и продаешь по сигналу 
+  
+  # Определение момента покупки/продажи для расчета комиссии
+  trade$switch <- fifelse(sgnl$two_way == lag(sgnl$two_way),  0, 1) 
+  
+  # Добавление дивидендов в модель
+  if(is.null(div[[ticker]])) div[[ticker]] <- data.table(date = as.Date(paste0(2014:2023, "-01-01")), dividend = 0) |> 
+    as.xts()
+  
+  trade <- merge(trade, div[[ticker]][,"dividend"], join='left')
+  trade$dividend_rub <- lag(trade$dividend, k = -1)
+  trade$dividend_rub <- replace(trade$dividend_rub, is.na(trade$dividend_rub), 0)
+  
+  # Расчет расходов на торговлю как сумму затрат на покупку/продажу и непокрытую позицию
+  trade$buy_cost <- trade$Open*trade$switch*trans_cost
+  trade$sell_cost <- trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  trade$two_way_cost <- 2*trade$Open*trade$switch*trans_cost + ifelse(sgnl$sell == -1, 1, 0)*trade$Open*short_cost
+  
+  # Расчет дневных прибылей/убытков
+  res <- sgnl$two_way
+  names(res) <- "signal"
+  # Дивиденды дают кумулятивную прибавку к цене актива
+  # Затраты вычитаются 
+  res$base <- dailyReturn(trade$Close + cumsum(trade$dividend_rub)) 
+  res$buy <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$buy - trade$buy_cost/trade$Open)
+  res$sell <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$sell - trade$sell_cost/trade$Open)
+  res$two_way <- suppressWarnings(dailyReturn(trade$Close + cumsum(trade$dividend_rub))*sgnl$two_way - trade$two_way_cost/trade$Open)
+  
+  merge(res[!is.na(res$two_way)], trade, join = "left") 
+}
+# Функция построения графика доходности
+plot_inertia <- function(est, name="", vis = TRUE){
+  # est <- est_inertia("SBER")
+  
+  strategies <- c("base", "buy", "sell", "two_way")
+  est_dt <- as.data.table(est)[
+    , (strategies):=lapply(.SD, \(x)cumprod(1+x)-1), .SDcols=strategies][
+      , div:=fifelse(dividend_rub > 0, dividend_rub/Open, NA) ]
+  
+  profit_dt <- est_dt[, c("index", strategies), with=FALSE] |> 
+    melt("index") 
+  
+  profit <- profit_dt |>
+    my_ggplot(aes(index, value, col = variable)) + 
+    geom_vline(data = est_dt, aes(xintercept = fifelse(dividend_rub > 0, index, NA)), lty=5, color = "gray80")+
+    geom_line() +
+    geom_label(data = \(x)x[, .(index=last(index), value = last(value)), by=variable], 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    geom_label(data = est_dt, aes(index, Inf, label=scales::percent(div, .1)), color = "gray80", vjust = 1, alpha=.5) +
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Доходность", col = "Стратегия")
+  
+  get_max <- function(out, input){if(out>input) out else input}
+  
+  drawdown_dt <- est_dt[, (paste0(strategies, "_max")):=lapply(.SD, \(x)Reduce(get_max, x, accumulate = TRUE)), .SDcols=strategies][
+    , `:=`(base = (base-base_max)/(1+base_max), 
+           buy = (buy-buy_max)/(1+buy_max), 
+           sell = (sell-sell_max)/(1+sell_max), 
+           two_way=(two_way-two_way_max)/(1+two_way_max))][
+             , c("index", strategies), with=FALSE] |> 
+    melt("index")
+  
+  drawdown <- drawdown_dt |> 
+    my_ggplot(aes(index, value, col = variable)) +
+    geom_line() +
+    geom_label(data = \(x)x[value%in%collapse::fmin(value, x$variable)] |> unique(by = "variable"), 
+               aes(index, value, label = scales::percent(value, .1), col = variable), alpha=.5, fill = "gray20") + 
+    scale_y_continuous(labels = scales::label_percent(), n.breaks = 6) + 
+    labs(x="Дни", y = "Просадка", col = "Стратегия")
+  
+  if(vis){
+    profit/drawdown + plot_layout(nrow = 2, heights = c(2, 1), guides = 'collect') + 
+      plot_annotation(title = paste0("Доходность стратегий  для ", name, " | ", deparse(substitute(est))))
+  }else{
+    drawdown_dt[,.(drawdown=min(value)), by=variable][profit_dt[,.(profit=last(value)), by=variable], on="variable"][,name:=name][]
+  }
+}
+
+# Непосредственно расчет стратегий
+mdl_lst <- purrr::map(trades, est_inertia, .progress = T)
+
+# Получение итоговых статистик
+performance <- mapply(\(x, y)plot_inertia(x, name = y, vis = F), mdl_lst, names(mdl_lst), SIMPLIFY = F) |> 
+  rbindlist(use.names = TRUE, fill = TRUE, idcol = "ticker") |>
+  merge(ticks_info[, .(ticker=tiker, industry)], by="ticker")
+
+# Доходности стратегий
+performance |> 
+  ggplot(aes(variable, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 15, labels = scales::label_percent()) +
+  geom_text(data = ~.[,.(median=median(profit)), by = variable], 
+            aes(y=Inf, label=scales::percent(median)), vjust=1) + 
+  labs(title = "Доходности стратегий", 
+       subtitle = "С начала 2019 года по август 2023 года\nСверху выведена медиана доходности стратегии в процентах", 
+       col = "Стратегия", fill = "Стратегия", x = "Стратегия", y = "Доходность")
+
+# Просадки стратегий
+performance |> 
+  ggplot(aes(variable, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = drawdown), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) + 
+  geom_text(data = ~.[,.(median=median(drawdown)), by = variable], 
+            aes(y=Inf, label=scales::percent(median)), vjust=1) + 
+  scale_y_continuous(n.breaks = 20, labels = scales::label_percent(), expand = expansion(mult = .15)) +
+  labs(title = "Просадки стратегий", 
+       subtitle = "С начала 2019 года по август 2023 года\nСверху выведена медиана доходности стратегии в процентах", 
+       col = "Стратегия", fill = "Стратегия", y = "Уровень просадки", x = "Стратегия") 
+
+# Доходности стратегий стратегий по отраслям
+performance[, `:=`(n=.N, med = median(profit)), by = industry][n > 12] |>  
+  ggplot(aes(industry, col = variable, fill=variable)) + 
+  geom_boxplot(aes(y = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 15, labels = scales::label_percent(big.mark = "")) +
+  coord_flip() + 
+  labs(title = "Доходности стратегий стратегий по отраслям", 
+       subtitle = "С начала 2019 года по август 2023 года\n",
+       col = "Стратегия", fill = "Стратегия", y = "Доходность", x = "Отрасль") +
+  theme(legend.position = "bottom")
+
+# Доходности стратегии "купил и держи" по отраслям
+performance[variable == "base"][, `:=`(n=.N, med = median(profit)), by = industry][n > 3] |> 
+  my_ggplot() + 
+  geom_boxplot(aes(x = reorder(industry, med), y = profit), alpha = .5, outlier.shape = NA) + 
+  geom_jitter(aes(x = reorder(industry, med), y = profit, col = profit), alpha = .5) + 
+  geom_hline(yintercept = 0, col = "white", size = 5, alpha = .2) +
+  geom_hline(yintercept = 0, col = "white", size = 15, alpha = .1) +
+  geom_hline(yintercept = 0, col = "white", lty=5) +
+  scale_y_continuous(n.breaks = 10, labels = scales::label_percent(big.mark = ""), expand = expansion(mult=.2)) +
+  geom_text(data = ~.[,.(median=median(profit)), by = industry], 
+            aes(x = industry, y=Inf, label=scales::percent(median), col = median), hjust=1) + 
+  geom_text(data = ~.[profit > med*2 & profit > 4], 
+            aes(x = industry, y=profit, label=ticker, col = profit), hjust=0.5, check_overlap = T, vjust=1)+
+  coord_flip() + 
+  firatheme::scale_color_fira(continuous = T) + 
+  labs(title = 'Доходности стратегии "купил и держи" по отраслям', 
+       subtitle = "С начала 2019 года по август 2023 года\nСправа выведена медиана доходности отрасли в процентах",
+       col = "Стратегия", fill = "Стратегия",  x = "Отрасль", y = "Доходность") + 
+  theme(legend.position = "none")
 ```
 
 </details>
