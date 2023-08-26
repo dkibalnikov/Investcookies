@@ -1,7 +1,7 @@
 ---
 title: "Полный трендец - финал 🏁"
 author: "🍪🍪🪙"
-date: 2025-08-21
+date: 2023-08-21
 categories: ["data science"]
 tags: ["analysis", "R", "stock market", "advanced"]
 math: true # when math activated -> don't use brackets:( and )
