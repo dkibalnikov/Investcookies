@@ -13,7 +13,7 @@ R data.table and Apple M1 installation on Big Sur supporting openmp multithreadi
 
 ## Introduction
 
-Official release of R4.1.0 has bring long awaiting native support of Apple M1 to R/Mac users. Of course Rosetta engine provided by Apple do its job very well. Nevertheless we always eager for more performance and less time doing our data wrangling job. Unfortunately there are still lack of information regarding working in new environment. Basic installation of data.table to any macos causes a notification:
+The official release of R4.1.0 has brought long-awaited native support for Apple M1 to R/Mac users. While the Rosetta engine provided by Apple does its job very well, we are always eager for more performance and less time spent on our data wrangling tasks. Unfortunately, there is still a lack of information regarding working in the new environment. Basic installation of data.table on any macOS causes a notification:
 
     **********
     This installation of data.table has not detected OpenMP support. 
@@ -23,7 +23,7 @@ Official release of R4.1.0 has bring long awaiting native support of Apple M1 to
     This warning message should not occur on Windows or Linux. If it does, please file a GitHub issue.
     **********
 
-Notification leads to [data.table installation guide](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac) describing several steps necessary for obtaining multithreading mode. Actually there is no openmp support by Apple. This obligates to compile data.table on device from source using command:
+Notification leads to [data.table installation guide](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac) describing several steps required for obtaining multithreading mode. Actually, there is no openmp support by Apple. This obligates to compile `data.table` on a device from source using command:
 
 
 ```r
@@ -31,21 +31,21 @@ install.packages("data.table", type = "source",
     repos = "https://Rdatatable.gitlab.io/data.table")
 ```
 
-Guidance provides several options of macos preparing for installation from source. For my Rosetta installation I prefer to use compiler: **GCC (Official GNU fortran) ver** basicaly because of lesser HD space. Unfortunately this option turns to be absolutely useless in case of native aarch64 installation. After several attempts using different options provided by guidance I came to decision all described options are useless regarding aarch64 case. Moreover searching solution across internet shows nothing regarding the case.
+The guidance provides several options for macOS preparation for installation from source. For my Rosetta installation, I prefer to use the compiler: **GCC (Official GNU Fortran) ver** mainly because of its smaller disk space requirements. Unfortunately, this option turns out to be absolutely useless in the case of native aarch64 installation. After several attempts using different options provided by the guidance, I came to the conclusion that all described options are ineffective for the aarch64 case. Moreover, searching for a solution across the internet yields nothing regarding this case.
 
 ## Solution
 
-Solution below provided on your own responsibility and considered to be as experiential. I highly recommend to keep previous R installation nearby with new one for unpredictable issues cased by compiling another packages like [stringi issue](https://github.com/Rdatatable/data.table/issues/4907) or rcpp or whatever.
+The solution provided below is at your own responsibility and is considered experimental. I highly recommend keeping the previous R installation alongside the new one to address any unpredictable issues caused by compiling other packages, such as the [stringi issue](https://github.com/Rdatatable/data.table/issues/4907) or rcpp or whatever.
 
-There will be used option using llvm. Steps are correspond to data.table guidance except 0 one.
+The option with llvm will be used. Steps are corresponded to `data.table` guidance except 0 one.
 
 ### Step 0 (prepare RStudio)
 
-First of all you need to install preview release of [RStudio](https://www.rstudio.com/products/rstudio/download/preview/) which supports **Apple Silicon** (aarch64).
+First of all, you need to install preview release of [RStudio](https://www.rstudio.com/products/rstudio/download/preview/) which supports **Apple Silicon** (aarch64).
 
 ### Step 1 (100% according guidance)
 
-First, ensure that you have command line tools installed. **Do NOT skip** this step. It is essential. See <https://github.com/Rdatatable/data.table/issues/1692>. From the terminal, type:
+Now, ensure that you have command line tools installed. **Do NOT skip** this step. It is essential. See <https://github.com/Rdatatable/data.table/issues/1692>. From the terminal, type:
 
 
 ```bash
@@ -69,7 +69,7 @@ Note that homebrew have separate location for installing arm version of packages
 
 ### Step 3 (modified guidance)
 
-Add the following lines to the file `~/.R/Makevars` using your favourite text editor. It's likely you need to create the `.R`directory and the file `Makevars` in it if it doesn't already exist.
+Add the following lines to the file `~/.R/Makevars` using your favourite text editor. It's likely you need to create the `.R`directory and the file `Makevars` in it if it hasn't already exist.
 
 
 ```bash
@@ -84,11 +84,11 @@ LDFLAGS=-L/opt/homebrew/opt/gettext/lib -L$(LLVM_LOC)/lib -Wl,-rpath,$(LLVM_LOC)
 CPPFLAGS=-I/opt/homebrew/opt/gettext/include -I$(LLVM_LOC)/include
 ```
 
-The only difference of configuration above with original one is substitution of compiler links to `/opt/homebrew/...`. After that all necessary configurations are done and package ready to be installed from source.
+The only difference of configuration above with original one is substitution of compiler links to `/opt/homebrew/...`. After that all necessary configurations are done and package ready to be installed from source. Use the following command: `install.packages("data.table", type = "source")`
 
 ### Perfomance tests
 
-Is it worth to migrate from Rosetta to native support? Difficulties with installation and supporting several lib directories considered to be as cons but outcome seems to be valuable. There are some benchmark results below.
+Is it worth migrating from Rosetta to native support? While there are difficulties with installation and managing several lib directories, the benefits appear to be valuable. Benchmark results are provided below.
 
 #### Hardware
 
@@ -96,11 +96,11 @@ Is it worth to migrate from Rosetta to native support? Difficulties with install
 
 2.  Core(TM) i7-7700 CPU \| Memory 44 Gb \| Ubuntu 20.04.2 LTS
 
-Ubuntu running as virtualized instance on remote server. Both systems uses pretty fast SSD and were tested with 4-way multithreading option activated. All tests were made on refreshed session (also see [SessionInfo()](#sessioninfo)).
+Ubuntu is running as a virtualized instance on a remote server. Both systems use fast SSDs and were tested with the 4-way multithreading option activated. All tests were conducted on a refreshed session (also see [SessionInfo()](#sessioninfo)).
 
 #### Data generation
 
-I guess some simple math calculation for base R would be appropriate profile for emulating real tasks. I also choose the most usefull functions for me from data.table package. Such approach could not be named comprehensive and objective but as for me it is better than nothing.
+I believe that performing simple mathematical calculations using base R and incorporating the most useful functions from the data.table package would be an appropriate profile for emulating real tasks. While this approach may not be comprehensive and entirely objective, it provides a practical assessment based on your specific needs.
 
 
 ```r
@@ -148,7 +148,7 @@ mark(min_time = .1, min_iterations = 50, check = FALSE,
 3 as.list(log(smpl0))     95.75ms 132.74ms     3.23     76.3MB    0.968    50    15      15.5s
 ```
 
-It seems Rosetta emulation does it's work very well showing **5-10%** advantage over intel comparable platform.
+It seems Rosetta emulation does not work very well showing **5-10%** advantage over intel comparable platform.
 
 ##### Native arm mode
 
@@ -190,13 +190,13 @@ Native support shows more solid results. It seems to be **twice faster** than Ro
 3 uniqueN(smpl1, by = c("fctr", "num2"))           570.96ms 596.29ms    1.49    381.48MB    0.119    50     4     33.62s
 ```
 
-data.table functions shows contrudictionary results:
+`data.table` functions show contrudictionary results:
 
-1.  Aggregation function shows huge gap between intel-base system and Rosetta mode. Rosetta is slower for \~50 times!!! Its interesting result and hardly could be easily explained. For proving case I reset R session and repeat test several times but results were pretty much the same.
-
-2.  Left join seems to be faster for Rosetta like it is for base-r level **5-10%**
-
-3.  Calculating unique observation is more than **two time** faster on Rosetta than intel-based
+*   The aggregation function reveals a significant gap between the Intel-based system and Rosetta mode. Rosetta appears to be slower by approximately 50 times. This is an intriguing result and is not easily explained. To validate this observation, I reset the R session and repeated the test several times, yet the results remained consistently similar.
+    
+*   Left join seems to be faster for Rosetta, just as it is for the base R level, with an improvement of **5-10%**.
+    
+*   Calculating unique observations is more than **two times** faster on Rosetta than on the Intel-based system.
 
 ##### Native arm mode
 
@@ -210,7 +210,7 @@ data.table functions shows contrudictionary results:
 3 uniqueN(smpl1, by = c("fctr", "num2"))          518.12ms  577.3ms     1.51   381.48MB    0.121    50     4     33.19s
 ```
 
-Interestingly native mode shows slight advantage over Rosetta mode for left join and unique calculation. However performance for aggregation grows dramatically and shows small advantage over intel-based system (about **5%**).
+Interestingly, the native mode demonstrates a slight advantage over Rosetta mode for left join and unique calculation. However, the performance for aggregation grows dramatically and exhibits a small advantage over the Intel-based system (approximately **5%**).
 
 #### SessionInfo() {#sessioninfo}
 
@@ -284,16 +284,16 @@ other attached packages:
 
 #### Conclusions
 
-1.  Running R and data.table native mode is experimental so far and practitioners come across lack of information for meeting their macos environment to new requirements.
+1. Running R and `data.table` in native mode is still considered experimental, and practitioners often encounter a lack of information to adapt their macOS environment to meet the new requirements.
 
-2.  However native mode brings solid performance upgrade over Rosetta mode for base R. Calculations are twice faster.
+2. Despite being experimental, native mode provides a substantial performance improvement over Rosetta mode for base R, resulting in calculations that are twice as fast.
 
-3.  Drastic perfomance downgrade of aggregation function looks surprising for data.table calculations running Rosetta mode. However running native mode fixes it out.
+3. The surprising drastic performance downgrade observed in the aggregation function for `data.table` calculations running in Rosetta mode is resolved when running in native mode.
 
-#### Some recommendations
+#### Recommendations
 
-1.  Be ready that something might goes wrong
+1. Be prepared for potential issues as running R and data.table in native mode is experimental.
 
-2.  Keep old R version as an backup plan
+2. Keep an older R version as a backup plan to ensure continuity.
 
-3.  Use Rswitch for switching between old and new R versions [RSwitch](https://rud.is/rswitch/)
+3. Consider using Rswitch for seamless switching between old and new R versions. [RSwitch](https://rud.is/rswitch/)
