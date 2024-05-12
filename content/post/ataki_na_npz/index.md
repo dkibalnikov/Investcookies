@@ -6,7 +6,7 @@ categories: ["статистика", "экономика"]
 tags:       ["analysis", "R", "статистика", "для всех"]                      
 math: true
 ShowToc: true
-summary: "Насколько страшны атаки дронов на НПЗ?"
+summary: "Насколько ощутимы атаки дронов на российские НПЗ для обывателя?"
 cover:
  image: "oil_flame.jpeg"
  alt: ""
