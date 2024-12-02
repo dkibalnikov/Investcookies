@@ -70,9 +70,10 @@ p0
 dist_mtrx <- as.matrix(dist(cities))
 
 # Визуализация матрицы расстояний
-apply(dist_mtrx, 2, round) |> 
+apply(dist_mtrx, 2, \(x)round(x,1)) |> 
   as.data.frame(dist_mtrx) |> 
-  emphatic::hl(scale_color_viridis_c())
+  emphatic::hl(scale_color_viridis_c()) |> 
+  emphatic::as_html(font_size = "11px")
 ```
 
 ## Ближайший город
