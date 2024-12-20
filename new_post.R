@@ -100,7 +100,7 @@ create_post <- function(title, summary, image, date = Sys.Date(), math = TRUE, S
 }
 
 
-create_post(title = "Простые эвристики для TSP", 
-            summary = "Реализация нескольких простых алгоритмов для решения задачи TSP и их сравнение", 
-            image = "~/Downloads/concorde_elk.png")
+create_post(title = "Внимание - это все, что нужно коммивояжеру", 
+            summary = "Первое относительно успешное решение на база механизма внимания", 
+            image = "~/Downloads/vermeer2.jpg")
 
