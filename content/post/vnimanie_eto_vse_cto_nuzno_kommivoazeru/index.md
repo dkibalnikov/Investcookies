@@ -6,7 +6,7 @@ categories: ["data science"]                # NEEDs TO BE UPDATED
 tags: ["algorithms", "R", "advanced", "optimization", "habr", "torch", "AI"]                     # NEEDs TO BE UPDATED 
 math: true
 ShowToc: true
-summary: "Первое относительно успешное решение на база механизма внимания"
+summary: "Первое относительно успешное решение задачи коммивояжера с помощью ИИ"
 cover:
  image: "vermeer2.jpg"
  alt: ""
