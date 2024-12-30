@@ -1,5 +1,5 @@
 ---
-# title: ""
+title: ""
 layout: "about"
 ---
 
@@ -53,7 +53,10 @@ layout: "about"
      <li>8 лет опыта разработки прогнозных моделей в качестве независимого эксперта</li>
      <li>10 лет прибыльного опыта инвестиций на рынке ценных бумаг</li>
      <li>3 года опыта реализации дата-проектов для глобальных компаний</li>
-     <li>Автор и соавтор публичных пакетов для языка R `Donutsk`, `fedstatAPIr`</li>
+     <li>Автор и соавтор публичных пакетов для языка R: <ul>
+     <li><a href="https://dkibalnikov.github.io/donutsk/">donutsk</a></li>
+     <li><a href="https://cran.r-project.org/web/packages/fedstatAPIr/">fedstatAPIr<a/></li></li>
+     </ul>
   </ul>
     </div>
 </div>
