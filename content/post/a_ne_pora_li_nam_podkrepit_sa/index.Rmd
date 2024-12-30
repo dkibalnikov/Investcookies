@@ -1,7 +1,7 @@
 ---
 title: "А не пора ли нам подкрепиться?"
 author: "🍪🍪🪙"
-date: 2025-01-01
+date: 2025-01-10
 categories: ["data science"]                # NEEDs TO BE UPDATED 
 tags: ["algorithms", "R", "advanced", "optimization", "habr", "torch", "AI"]                     # NEEDs TO BE UPDATED 
 math: true
