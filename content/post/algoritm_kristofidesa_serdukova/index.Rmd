@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = FAL
 
 # Активируем тему для блога
 thematic::thematic_rmd(bg = "#1D1E20", accent = "black", fg = "grey90", 
-                      font = thematic::font_spec("Roboto"), #sequential = firatheme::firaPalette(100), 
+                      #font = thematic::font_spec("Roboto"), #sequential = firatheme::firaPalette(100), 
                       qualitative = palette.colors(palette = "Tableau")) 
 
 # Сохраняем палитру в отдельную переменную
