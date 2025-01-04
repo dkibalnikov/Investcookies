@@ -247,11 +247,6 @@ p0 +
 
 **Скорость вычислений**
 
-
-```
-## Error : The fig.showtext code chunk option must be TRUE
-```
-
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="720" />
 В этой номинации *алгоритм Кристофидеса-Сердюкова* занимает уверенное второе место вслед за эвристикой ближайшего города и это по-моему прекрасный результат. 
 

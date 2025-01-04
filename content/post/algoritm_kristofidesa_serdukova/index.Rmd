@@ -267,7 +267,7 @@ dplyr::mutate(tsts, task_size=lapply(route, \(x)ifelse(length(x)%%2==0, length(x
 
 **Скорость вычислений**
 
-```{r, cache=TRUE, echo=FALSE}
+```{r, echo=FALSE}
 # Визуализация 
 dplyr::mutate(tsts, task_size=lapply(route, \(x)ifelse(length(x)%%2==0, length(x), length(x)-1))|>unlist()) |> 
   ggplot(aes(stringr::str_wrap(model, 8), log(as.numeric(duration)), fill = model, col= model)) + 
