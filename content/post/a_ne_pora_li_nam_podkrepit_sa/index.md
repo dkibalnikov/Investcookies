@@ -109,7 +109,7 @@ if(runif(1) > epsilon){ # epsilon - затухающий с итерациями
       else{  
         # ИССЛЕДОВАНИЕ
         options = n_seq[which(!n_seq %in% mem)] # доступные для посещения города
-        action = sample(options, size = 1) # случаный выбор города
+        action = ifelse(length(options) == 1, options, sample(options, size = 1)) # случаный выбор города
       }
 ```
 
