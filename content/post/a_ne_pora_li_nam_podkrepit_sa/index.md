@@ -6,7 +6,7 @@ categories: ["data science"]                # NEEDs TO BE UPDATED
 tags: ["algorithms", "R", "advanced", "optimization", "habr", "AI"]                     # NEEDs TO BE UPDATED 
 math: true
 ShowToc: true
-summary: "Обучение с подкреплением -- это одна из ключевых концепций ИИ, поэтому сегодня рассмотрим коммивояжера на базе Q-обучения."
+summary: "Обучение с подкреплением -- это одна из ключевых концепций ИИ. Пришло время подкрепить коммивояжера методом Q-обучения."
 cover:
  image: "vinni.webp"
  alt: ""
