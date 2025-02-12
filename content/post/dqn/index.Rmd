@@ -3,7 +3,7 @@ title: "Глубокое Q-обучение (DQN)"
 author: "🍪🍪🪙"
 date: 2025-02-10
 categories: ["data science"]                # NEEDs TO BE UPDATED 
-tags: ["analysis", "R"]                     # NEEDs TO BE UPDATED 
+tags: ["algorithms", "R", "advanced", "optimization", "habr", "AI"]                     # NEEDs TO BE UPDATED
 math: true
 ShowToc: true
 summary: "Помогаю разобраться в авторской реализации Deep Q-learning для задачи коммивояжера (TSP)"
