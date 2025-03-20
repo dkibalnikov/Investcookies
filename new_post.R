@@ -100,7 +100,6 @@ create_post <- function(title, summary, image, date = Sys.Date(), math = TRUE, S
 }
 
 
-create_post(title = "DQN", 
-            summary = "Помогаю разобраться в авторской реализации Deep Q-learning для задачи коммивояжера (TSP)", 
-            image = "~/Downloads/DQN.png")
-
+create_post(title = "transformers", 
+            summary = "Обзор наиболее перспективной архитектуры нейронных сетей в контексте задач оптимизации", 
+            image = "~/Downloads/TheTransformers.jpg")
