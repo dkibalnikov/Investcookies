@@ -1,19 +1,25 @@
 ---
 title: "TSP трансформеры"
-author: "🍪🍪🪙"
-date: 2025-03-18
-categories: ["data science"]                # NEEDs TO BE UPDATED 
-tags: ["algorithms", "R", "advanced", "optimization", "habr", "AI"]           # NEEDs TO BE UPDATED 
+author: "\U0001F36A\U0001F36A\U0001FA99"
+date: "2025-03-18"
+categories: data science
+tags:
+- algorithms
+- R
+- advanced
+- optimization
+- habr
+- AI
 math: true
 ShowToc: true
-summary: "Обзор одной из самых перспективных архитектур нейронных сетей в контексте задач оптимизации и не только. Речь о тандеме трансформеров и обучения с подкреплением — технологии, которая обещает стать одной из ключевых вех этого столетия.
-
-Если ваши нейросети ещё не глубокие и неподкреплённые, то эта заметка для вас ✌️"
+summary: |-
+  Обзор одной из самых перспективных архитектур нейронных сетей в контексте задач оптимизации и не только. Речь о тандеме трансформеров и обучения с подкреплением — технологии, которая обещает стать одной из ключевых вех этого столетия.
+  Если ваши нейросети ещё не глубокие и неподкреплённые, то эта заметка для вас ✌️
 cover:
- image: "TheTransformers.jpg"
- alt: ""
- caption: ""
- relative: true # To use relative path for cover image, used in hugo Page-bundles
+  image: TheTransformers.jpg
+  alt: ''
+  caption: ''
+  relative: true
 ---
  
 
@@ -31,10 +37,10 @@ cover:
 
 Важно напомнить, что данная статья является продолжением серии моих заметок об алгоритмах оптимизации. Прочтение данного текста, ровно как и прочтение предыдущих заметок, не гарантирует понимания того, как работает ИИ, но, верю, делает тернистый путь изучения чуть менее тернистым:
 
-- [Внимание — это всё, что нужно коммивояжеру](https://chatgpt.com/post/vnimanie_eto_vse_cto_nuzno_kommivoazeru/) — описание архитектуры `Pointer Net` с встроенным механизмом внимания;
-- [Внимание, правильный ответ](https://chatgpt.com/post/prosto_o_vnimanii/) — связь непараметрических методов статистики с механизмом внимания;
-- [А не пора ли нам подкрепиться?](https://chatgpt.com/post/vnimanie_eto_vse_cto_nuzno_kommivoazeru/) — описание табличного `off-policy` метода оптимизации (`Q-обучение`) и сравнение с `on-policy` подходом;
-- [Глубокое Q-обучение (DQN)](https://chatgpt.com/post/dqn/) — авторский алгоритм на базе `Q-обучения` и глубокой нейронной сети.
+- [Внимание — это всё, что нужно коммивояжеру](/post/vnimanie_eto_vse_cto_nuzno_kommivoazeru) — описание архитектуры `Pointer Net` с встроенным механизмом внимания;
+- [Внимание, правильный ответ](/post/prosto_o_vnimanii) — связь непараметрических методов статистики с механизмом внимания;
+- [А не пора ли нам подкрепиться?](/post/a_ne_pora_li_nam_podkrepit_sa) — описание табличного `off-policy` метода оптимизации (`Q-обучение`) и сравнение с `on-policy` подходом;
+- [Глубокое Q-обучение (DQN)](/post/dqn) — авторский алгоритм на базе `Q-обучения` и глубокой нейронной сети.
 
 Хотелось бы ограничить количество букв в заметке и опустить базовое описание архитектуры трансформеров, которое можно посмотреть, например, [тут](https://d2l.ai/chapter_attention-mechanisms-and-transformers/index.html). Действительно, я не ставлю целью перевод книг, где уже всё разложено по правильным полочкам. Таким образом, данная заметка будет сфокусирована на специфических моментах, важных для TSP.
 
@@ -64,13 +70,13 @@ $$
 H^{\ell+1} =\operatorname{softmax}\left(\frac{Q^{\ell} K^{\ell}}{\sqrt{d}}\right) V^{\ell} \in \mathbb{R}^{(n+1) \times d}
 $$
 $$
-Q^{\ell} =H^{\ell} W_Q^{\ell} \in \mathbb{R}^{(n+1) \times d}
+Q^{\ell} =H^{\ell} W_Q^{\ell} \in \mathbb{R}^{(n+1) \times d} \quad \text{[query]}
 $$
 $$
-K^{\ell} =H^{\ell} W_K^{\ell} \in \mathbb{R}^{(n+1) \times d}
+K^{\ell} =H^{\ell} W_K^{\ell} \in \mathbb{R}^{(n+1) \times d} \quad \text{[key]}
 $$
 $$
-V^{\ell} =H^{\ell} W_V^{\ell} \in \mathbb{R}^{(n+1) \times d}
+V^{\ell} =H^{\ell} W_V^{\ell} \in \mathbb{R}^{(n+1) \times d} \quad \text{[value]}
 $$
 
 \[z\] — это стартовый токен, который инициализируется случайно и конкатенируется с тензором эмбединга координат, а далее поступает в декодер для старта авторегрессионного процесса выбора городов.
@@ -105,7 +111,7 @@ $$
 $$
    
 $$
-PE_{t, i}= \begin{cases} \sin\(2 \pi f_i t\)\text { if } i \text { is even, }\\\\cos \(2 \pi f_i t\) \text { if } i \text { is odd, }\end{cases}
+PE_{t, i}= \begin{cases} \sin(2 \pi f_i t)\text { if } i \text { is even, }\\\\cos (2 \pi f_i t) \text { if } i \text { is odd, }\end{cases}
 $$
 $$
 \text { with } f_i=\frac{{10,000 }^{\frac{d}{[2 i]}}}{2 \pi} 
@@ -118,28 +124,33 @@ $$
 2. Кодируем результат предыдущего шага с помощью функции *Self-Attention*:
 
 $$
-\hat{h}_t^{\ell+1} =\text{softmax}\(\frac{q^{\ell} K^{\ell^2}}{\sqrt{d}}\) V^{\ell} \\in \mathbb{R}^d, \ell=0, \ldots, L^{\text {dec }}-1
+\hat{h}_t^{\ell+1} =\text{softmax}\left( \frac{q^{\ell} K^{\ell^2}}{\sqrt{d}}\right) V^{\ell} \in \mathbb{R}^d, \ell=0, \ldots, L^{\text {dec }}-1
 $$
 
 $$
-q^{\ell} =\hat{h_t}^{\ell}\hat{W_q}^{\ell} \\in \mathbb{R}^d
+q^{\ell} =\hat{h_t}^{\ell}\hat{W_q}^{\ell} \in \mathbb{R}^d \quad \text{[query]}
 $$
 
 $$
-\hat{H_{1, t}}^{\ell}  =\left[\hat{h_1}^{\ell}, . ., \hat{h_t}^{\ell}\right], 
+K^{\ell}=\hat{H}_{1, t}^{\ell} \hat{W}_K^{\ell} \in \mathbb{R}^{t \times d} \quad \text{[key]}
 $$
 
 $$
-\hat{h_t}^{\ell}=\begin{cases} h_t^{\text {dec }} \text { if } \ell=0 \\\ h_t^{\text {q}, \ell} \text { if } \ell>0 \end{cases}
+V^{\ell}=\hat{H}_{1, t}^{\ell} \hat{W}_V^{\ell} \in \mathbb{R}^{t \times d} \quad \text{[value]}
 $$
+
+$$
+\hat{H_{1, t}}^{\ell}  =\left[\hat{h_1}^{\ell}, . ., \hat{h_t}^{\ell}\right], \quad \hat{h_t}^{\ell}=\begin{cases} h_t^{\text {dec }} \text { if } \ell=0 \\\ h_t^{\text {q}, \ell} \text { if } \ell>0 \end{cases}
+$$
+
 
 
    ![](./pics/decoder2.png)
 
-3. Осуществляем запрос (*query*) следующего города из списка не посещенных городов:
+3. Осуществляем запрос (*query*) следующего города из списка не посещенных (скрытых маскированием \[\mathcal{M}_t\]) городов, подмешивая ключи и значения из кодировщика:
    
    $$
-h_t^{\mathrm{q}, \ell+1}  =\text{softmax}\left(\frac{q^{\ell} K^{\ell^T}}{\sqrt{d}} \odot \mathcal{M}_t\right) V^{\ell} \\in \mathbb{R}^d, \ell=0, \ldots, L^{\mathrm{dec}}-1 \\\ q^{\ell} =\hat{h}_t^{\ell+1} \tilde{W}_q^{\ell} \\in \mathbb{R}^d \\\ K^{\ell} =H^{\mathrm{enc}} \tilde{W}_K^{\ell} \\in \mathbb{R}^{t \times d} \\\ V^{\ell} =H^{\mathrm{enc}} \tilde{W}_V^{\ell} \\in \mathbb{R}^{t \times d}
+h_t^{\mathrm{q}, \ell+1}  =\text{softmax}\left(\frac{q^{\ell} K^{\ell^T}}{\sqrt{d}} \odot \mathcal{M}_t\right) V^{\ell} \in \mathbb{R}^d, \ell=0, \ldots, L^{\mathrm{dec}}-1 \\\ q^{\ell} =\hat{h}_t^{\ell+1} \tilde{W}_q^{\ell} \in \mathbb{R}^d \\\ K^{\ell} =H^{\mathrm{enc}} \tilde{W}_K^{\ell} \in \mathbb{R}^{t \times d} \\\ V^{\ell} =H^{\mathrm{enc}} \tilde{W}_V^{\ell} \in \mathbb{R}^{t \times d}
    $$
 
 ![](./pics/decoder3.png)
@@ -149,7 +160,7 @@ h_t^{\mathrm{q}, \ell+1}  =\text{softmax}\left(\frac{q^{\ell} K^{\ell^T}}{\sqrt{
    2. Следующий город выбирается путем семплирования распределения Бернулли из выхода «одноголового» слоя внимания. На этом этапе присутствует элемент случайности в процессе обучения нейронной сети. Соответственно, для генерации инференса сеть переключается в «жадный режим» и выбирает город с максимальной вероятностью.
 
 $$
-p_t^{\mathrm{dec}} =\operatorname{softmax}\(C \tanh \(\frac{q K^T}{\sqrt{d}} \odot \mathcal{M}_t\)\) \\in \mathbb{R}^n, \\\ \text { with } \\\ \qquad q =h_t^{\mathrm{q}} \bar{W}_q \\in \mathbb{R}^d \\\ K = H^{\mathrm{enc}} \bar{W}_K \\in \mathbb{R}^{n \times d}
+p_t^{\mathrm{dec}} =\operatorname{softmax}\left(C \tanh \left(\frac{q K^T}{\sqrt{d}} \odot \mathcal{M}_t\right)\right) \in \mathbb{R}^n, \quad \text { with } \\\ \qquad q =h_t^{\mathrm{q}} \bar{W}_q \in \mathbb{R}^d \\\ K = H^{\mathrm{enc}} \bar{W}_K \in \mathbb{R}^{n \times d}
 $$
 
 ![](./pics/decoder4.png)
@@ -175,7 +186,7 @@ $$
 
 После того как принципы работы архитектуры раскрыты, хотелось бы перейти к некоторым приятным свойствам, которые нельзя оставить незамеченными. Речь пойдёт о способности этой архитектуры решать задачи, с которыми модель ранее не сталкивалась. Классические решатели так не умеют: они решают задачу каждый раз заново. Кроме того, предыдущие архитектуры, рассмотренные в серии моих заметок, демонстрировали это скорее как побочный эффект. Можно было обучить модель на одной задаче, затем подать другие данные, и она генерировала какой-то ответ. В случае с *DQN* этот ответ был даже сносным.
 
-В TSP-трансформерах задача изначально решалась сразу и полностью. Процесс обучения разбивался на стадии, в рамках которых генерились рандомные задачи, а затем осуществлялся поиск оптимального набора параметров. Соответственно, для каждой сгенерированной задачи внутри стадии происходило обучение в несколько подстадий, задаваемых параметром nb_epochs: чем больше таких подстадий — тем выше точность решения.
+В TSP-трансформерах задача изначально решалась сразу и полностью. Процесс обучения разбивался на стадии, в рамках которых генерились рандомные задачи, а затем осуществлялся поиск оптимального набора параметров. Соответственно, для каждой сгенерированной задачи внутри стадии происходило обучение в несколько подстадий, задаваемых параметром `nb_epochs`: чем больше таких подстадий — тем выше точность решения.
 
 Кроме того, в рамках каждой стадии присутствует этап оценки, регулируемый параметром `nb_batch_eval` — количеством случайных задач, для которых сравниваются результаты `Training Net` (новые коэффициенты модели) и `BaseLine Net` (старые коэффициенты модели с предыдущей стадии обучения). В своей реализации я использовал `nb_epochs=100` и `nb_batch_eval=20`. Однако это весьма скромные значения по сравнению с оригинальным кодом *Xavier Bresson*, но об этом немного позже. Соответственно, если `Training Net` показывала результат лучше, чем `BaseLine Net`, происходила перезапись: `Training Net` → `BaseLine Net`.
 
