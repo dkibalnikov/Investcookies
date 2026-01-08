@@ -1,12 +1,13 @@
 theme: "hugo-PaperMod"
 baseURL: /
 languageCode: ru-Ru
-title: 🅸🅽🆅🅴🆂🆃🅲🅾🅾🅺🅸🅴🆂
+defaultContentLanguage: ru
+title: 🅘🅝🅥🅔🅢🅣🅒🍪🍪🅚🅘🅔🅢 #🅸🅽🆅🅴🆂🆃🅲🅾🅾🅺🅸🅴🆂
 
 params:
     homeInfoParams:
         Title: 🍪 🍪 🪙
-        Content: Блог про инвестиции, финансы, экономику, data scienсe, визуализацию -- **Больше количественного и качественного анализа** 😎  <br><br> Hi there 👋 this is blog about data science, financial markets and economics
+        Content: Блог про инвестиции, финансы, экономику, data scienсe, визуализацию -- **Больше количественного и качественного анализа** 😎 #  <br><br> Hi there 👋 this is blog about data science, financial markets and economics
     socialIcons: # optional
         - name: "email"
           url: "mailto:d.kibalnikov@gmail.com"
@@ -43,25 +44,25 @@ outputs:
         - RSS
         - JSON # is necessary
 
-menu:
-    main:
-        - identifier: categories
-          name: categories
-          url: /categories/
-          weight: 10
-        - identifier: tags
-          name: tags
-          url: /tags/
-          weight: 20
-        - identifier: search
-          name: search 
-          url: /search/
-          weight: 30
-        - identifier: about
-          name: about
-          url: /about/
-          weight: 30
-          
+# menu:
+#     main:
+#         - identifier: categories
+#           name: categories
+#           url: /categories/
+#           weight: 10
+#         - identifier: tags
+#           name: tags
+#           url: /tags/
+#           weight: 20
+#         - identifier: search
+#           name: search 
+#           url: /search/
+#           weight: 30
+#         - identifier: about
+#           name: about
+#           url: /about/
+#           weight: 30
+#           
 disqusShortname: dmitrykibalnikov
           
 markup:
@@ -71,37 +72,41 @@ markup:
 
 googleAnalytics: G-STNC3D15LX
 
-# languages:
-#     ru:
-#         languageName: ":ru:"
-#         weight: 10
-#         title: InvestCookies
-#         menu:
-#             main:
-#                 - name: Поиск
-#                   url: search/
-#                   weight: 10
-#                 - name: Теги
-#                   url: tags/
-#                   weight: 10
-#                 - name: Категории
-#                   url: categories/
-#                   weight: 10
-#     en:
-#         languageName: "En"
-#         params:
-#           homeInfoParams:
-#             Title: 🍪 🍪 🪙
-#             Content: Hi there 👋  this is blog about datascience, financial markets and economics
-#         weight: 1
-#         menu:
-#             main:
-#                 - name: Search
-#                   url: search/
-#                   weight: 10
-#                 - name: Tags
-#                   url: tags/
-#                   weight: 10
-#                 - name: Categories
-#                   url: categories/
-#                   weight: 10
+languages:
+    ru:
+        languageName: ":ru:"
+        weight: 20
+        title: 🅘🅝🅥🅔🅢🅣🅒🍪🍪🅚🅘🅔🅢
+        menu:
+            main:
+                - name: поиск
+                  url: search/
+                  weight: 10
+                - name: теги
+                  url: tags/
+                  weight: 10
+                - name: категории
+                  url: categories/
+                  weight: 10
+                - identifier: about
+                  name: про блог
+                  url: /about/
+                  weight: 30
+    en:
+        languageName: "En"
+        params:
+          homeInfoParams:
+            Title: 🍪 🍪 🪙
+            Content: Hi there 👋  this is blog about datascience, financial markets and economics
+        weight: 10
+        menu:
+            main:
+                - name: search
+                  url: search/
+                  weight: 10
+                - name: tags
+                  url: tags/
+                  weight: 10
+                - name: categories
+                  url: categories/
+                  weight: 10
