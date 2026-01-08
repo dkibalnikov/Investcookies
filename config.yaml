@@ -1,6 +1,7 @@
 theme: "hugo-PaperMod"
 baseURL: /
 languageCode: ru-Ru
+defaultContentLanguage: ru
 title: 🅸🅽🆅🅴🆂🆃🅲🅾🅾🅺🅸🅴🆂
 
 params:
@@ -71,37 +72,37 @@ markup:
 
 googleAnalytics: G-STNC3D15LX
 
-# languages:
-#     ru:
-#         languageName: ":ru:"
-#         weight: 10
-#         title: InvestCookies
-#         menu:
-#             main:
-#                 - name: Поиск
-#                   url: search/
-#                   weight: 10
-#                 - name: Теги
-#                   url: tags/
-#                   weight: 10
-#                 - name: Категории
-#                   url: categories/
-#                   weight: 10
-#     en:
-#         languageName: "En"
-#         params:
-#           homeInfoParams:
-#             Title: 🍪 🍪 🪙
-#             Content: Hi there 👋  this is blog about datascience, financial markets and economics
-#         weight: 1
-#         menu:
-#             main:
-#                 - name: Search
-#                   url: search/
-#                   weight: 10
-#                 - name: Tags
-#                   url: tags/
-#                   weight: 10
-#                 - name: Categories
-#                   url: categories/
-#                   weight: 10
+languages:
+    ru:
+        languageName: ":ru:"
+        weight: 1
+        title: InvestCookies
+        menu:
+            main:
+                - name: Поиск
+                  url: search/
+                  weight: 10
+                - name: Теги
+                  url: tags/
+                  weight: 10
+                - name: Категории
+                  url: categories/
+                  weight: 10
+    en:
+        languageName: "En"
+        params:
+          homeInfoParams:
+            Title: 🍪 🍪 🪙
+            Content: Hi there 👋  this is blog about datascience, financial markets and economics
+        weight: 10
+        menu:
+            main:
+                - name: Search
+                  url: search/
+                  weight: 10
+                - name: Tags
+                  url: tags/
+                  weight: 10
+                - name: Categories
+                  url: categories/
+                  weight: 10
