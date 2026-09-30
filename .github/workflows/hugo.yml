@@ -19,6 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,8 +73,10 @@ jobs:
 
       - name: Build
         run: |
-          rm -rf public
-          hugo --baseURL "https://dkibalnikov.github.io/Investcookies/"
+          # Workaround for gohugoio/hugo#8166 deadlock: public/ must exist before build starts
+          rm -rf public && mkdir public
+          timeout 4m hugo --baseURL "https://dkibalnikov.github.io/Investcookies/" \
+            || { echo "hugo failed or hung, retrying once..."; rm -rf public && mkdir public; timeout 4m hugo --baseURL "https://dkibalnikov.github.io/Investcookies/"; }
 
       - name: Upload artifact
         if: github.event_name != 'pull_request'
@@ -85,6 +88,7 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
