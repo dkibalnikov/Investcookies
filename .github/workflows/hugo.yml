@@ -75,8 +75,8 @@ jobs:
         run: |
           # Workaround for gohugoio/hugo#8166 deadlock: public/ must exist before build starts
           rm -rf public && mkdir public
-          timeout 4m hugo --baseURL "https://dkibalnikov.github.io/Investcookies/" \
-            || { echo "hugo failed or hung, retrying once..."; rm -rf public && mkdir public; timeout 4m hugo --baseURL "https://dkibalnikov.github.io/Investcookies/"; }
+          timeout 4m hugo --baseURL "https://investcookies.ru/" \
+            || { echo "hugo failed or hung, retrying once..."; rm -rf public && mkdir public; timeout 4m hugo --baseURL "https://investcookies.ru/"; }
 
       - name: Upload artifact
         if: github.event_name != 'pull_request'
