@@ -1,0 +1,94 @@
+name: Build and deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check .Rmd changes are knitted (.md updated too)
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE="$PR_BASE_SHA"
+          else
+            BASE="$BEFORE_SHA"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit available, skipping check."
+            exit 0
+          fi
+          git fetch --no-tags --depth=1 origin "$BASE" 2>/dev/null || true
+          if ! git cat-file -e "$BASE" 2>/dev/null; then
+            echo "Base commit $BASE unavailable, skipping check."
+            exit 0
+          fi
+          changed=$(git diff --name-only "$BASE" "$GITHUB_SHA")
+          fail=0
+          for f in $changed; do
+            case "$f" in
+              content/*.Rmd|content/**/*.Rmd)
+                md="${f%.Rmd}.md"
+                if ! printf '%s\n' "$changed" | grep -qxF "$md"; then
+                  echo "::error file=$f::$f changed but $md was not updated. Knit locally (blogdown knit-on-save) and commit both files."
+                  fail=1
+                fi
+                ;;
+            esac
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "The deployed site is built from committed .md files; a stale .md means your .Rmd edit will not be published."
+          fi
+          exit $fail
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.88.1'
+          extended: false
+
+      - name: Build
+        run: |
+          rm -rf public
+          hugo --baseURL "https://dkibalnikov.github.io/Investcookies/"
+
+      - name: Upload artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
